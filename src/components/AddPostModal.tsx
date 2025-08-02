@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AddPostModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ interface AddPostModalProps {
     date: string;
     postType: 'normal' | 'reel';
   }) => void; // New prop for adding to calendar
+  isDemo?: boolean;
 }
 
 interface GeneratedContent {
@@ -26,7 +27,7 @@ interface GeneratedContent {
   videoIdeas?: string[];
 }
 
-export default function AddPostModal({ isOpen, onClose, onAddToCalendar }: AddPostModalProps) {
+export default function AddPostModal({ isOpen, onClose, onAddToCalendar, isDemo = false }: AddPostModalProps) {
   const [businessDescription, setBusinessDescription] = useState('');
   const [platform, setPlatform] = useState('Instagram');
   const [postType, setPostType] = useState<'normal' | 'reel'>('normal');
@@ -36,6 +37,19 @@ export default function AddPostModal({ isOpen, onClose, onAddToCalendar }: AddPo
   const [selectedTime, setSelectedTime] = useState('10:00');
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
   const platforms = ['Instagram', 'Facebook', 'TikTok'];
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const handleGenerate = async () => {
     if (!businessDescription.trim()) return;
@@ -188,8 +202,17 @@ export default function AddPostModal({ isOpen, onClose, onAddToCalendar }: AddPo
         <div className="p-4 sm:p-6 lg:p-8 border-b border-gray-200/50">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Adaugă postare AI</h2>
-              <p className="text-sm sm:text-base text-gray-600">Generează conținut captivant cu ajutorul AI</p>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                {isDemo ? 'Demo - Adaugă postare AI' : 'Adaugă postare AI'}
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600">
+                {isDemo ? 'Demo - Generează conținut captivant cu ajutorul AI' : 'Generează conținut captivant cu ajutorul AI'}
+              </p>
+              {isDemo && (
+                <div className="mt-2">
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">DEMO MODE</span>
+                </div>
+              )}
             </div>
             <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 rounded-xl transition-colors">
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

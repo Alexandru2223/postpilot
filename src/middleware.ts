@@ -9,20 +9,34 @@ export async function middleware(request: NextRequest) {
         return authRes;
     }
 
+    // API routes — allow access to onboarding endpoints
+    if (request.nextUrl.pathname.startsWith("/api/onboarding")) {
+        return NextResponse.next();
+    }
+
+    // API routes — allow access to token endpoint
+    if (request.nextUrl.pathname.startsWith("/api/auth/token")) {
+        return NextResponse.next();
+    }
+
     // public routes — no need to check for session
     if (request.nextUrl.pathname === ("/")) {
         return authRes;
     }
 
-    const { origin } = new URL(request.url)
-    const session = await auth0.getSession()
-
-    // user does not have a session — redirect to login
-    if (!session) {
-        return NextResponse.redirect(`${origin}/auth/login`)
+    // dashboard route — let Auth0 handle authentication
+    if (request.nextUrl.pathname.startsWith("/dashboard")) {
+        return authRes;
     }
 
-    return authRes
+    // demo route — allow access without authentication
+    if (request.nextUrl.pathname.startsWith("/demo")) {
+        return NextResponse.next();
+    }
+
+    // For protected routes, let Auth0 middleware handle the session check
+    // The Auth0 middleware will automatically redirect to login if no session exists
+    return authRes;
 }
 
 export const config = {
@@ -32,8 +46,8 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-         * - api (API routes)
+         * - api (API routes) - but we handle them in middleware
          */
-        "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api).*)",
+        "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
     ],
 }

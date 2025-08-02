@@ -85,7 +85,6 @@ body::before {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 /* Glass morphism effect */
 .glass {
   background: var(--glass-bg);
@@ -227,6 +226,49 @@ body::before {
     font-size: 2.25rem;
     line-height: 2.5rem;
   }
+
+  /* Optimize animations for mobile */
+  .animate-ping {
+    animation-duration: 3s;
+  }
+
+  .animate-pulse {
+    animation-duration: 3s;
+  }
+
+  /* Better mobile button sizing */
+  .px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Improve mobile card spacing */
+  .p-6 {
+    padding: 1.5rem;
+  }
+
+  .p-8 {
+    padding: 2rem;
+  }
+
+  /* Better mobile margins */
+  .mb-6 {
+    margin-bottom: 1.5rem;
+  }
+
+  .mb-8 {
+    margin-bottom: 2rem;
+  }
+
+  /* Optimize mobile gradients */
+  .bg-gradient-to-r {
+    background-size: 200% 200%;
+  }
 }
 
 /* Premium shadows */
@@ -327,7 +369,6 @@ body::before {
 .hover\:bg-gray-200\/50:hover {
   background-color: rgba(255, 255, 255, 0.18);
 }
-
 /* Additional mobile-friendly improvements */
 
 
@@ -479,3 +520,5 @@ p, h1, h2, h3, h4, h5, h6, span, div {
   -ms-user-select: text;
   user-select: text;
 }
+
+

@@ -1,28 +1,29 @@
 'use client';
 
-import { useUser } from '@auth0/nextjs-auth0';
 import { useState } from 'react';
+import { useAuth } from '../lib/useAuth';
 
 interface NavbarProps {
   onMobileMenuToggle: () => void;
   isMobileMenuOpen: boolean;
   onResetOnboarding?: () => void;
+  onLogout?: () => void;
+  isDemo?: boolean;
 }
 
-export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOnboarding }: NavbarProps) {
+export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOnboarding, onLogout, isDemo = false }: NavbarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, isLoading } = useUser();
-
-  const handleLogin = () => {
-    window.location.href = '/auth/login';
-  };
-
-  const handleSignup = () => {
-    window.location.href = '/auth/login?screen_hint=signup';
-  };
+  const { user, isLoading, login, signup, logout, isAuthenticated } = useAuth();
 
   const handleLogout = () => {
-    window.location.href = '/auth/logout';
+    // Curăță datele locale înainte de logout
+    if (onLogout) {
+      onLogout();
+    }
+    // Închide meniul utilizatorului
+    setIsUserMenuOpen(false);
+    // Redirecționează la logout
+    logout();
   };
 
   const getUserInitials = (name?: string, email?: string) => {
@@ -41,11 +42,15 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOn
         {/* Logo and App Name - Far Left */}
         <div className="flex items-center">
           <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 gradient-primary rounded-xl flex items-center justify-center shadow-premium">
-            <span className="text-white font-bold text-base sm:text-lg lg:text-xl">P</span>
+            <span className="text-white font-bold text-base sm:text-lg lg:text-xl">S</span>
           </div>
           <div className="ml-2 sm:ml-3 lg:ml-4">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold gradient-text">PostPilot AI</h1>
-            <p className="text-xs lg:text-sm text-gray-500 hidden sm:block">Social Media Content Planning</p>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold gradient-text">
+              {isDemo ? 'SocialDrive Demo' : 'SocialDrive'}
+            </h1>
+            <p className="text-xs lg:text-sm text-gray-500 hidden sm:block">
+              {isDemo ? 'Demo - Social Media Management' : 'Social Media Content Planning'}
+            </p>
           </div>
         </div>
 
@@ -63,12 +68,30 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOn
 
         {/* User Menu - Far Right (Hidden on mobile) */}
         <div className="hidden lg:block relative">
-          {isLoading ? (
+          {isDemo ? (
+            // Demo mode - show demo user with back button
+            <div className="flex items-center space-x-3 text-gray-700 p-3">
+              <button 
+                onClick={() => window.location.href = '/'}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="text-sm">Înapoi</span>
+              </button>
+              <div className="w-10 h-10 gradient-secondary rounded-full flex items-center justify-center shadow-premium">
+                <span className="text-white text-base font-medium">D</span>
+              </div>
+              <span className="text-base font-medium">Demo User</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">DEMO</span>
+            </div>
+          ) : isLoading ? (
             <div className="flex items-center space-x-3 text-gray-700 p-3">
               <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
             </div>
-          ) : user ? (
+          ) : isAuthenticated && user ? (
             // Logged in user
             <>
               <button
@@ -106,11 +129,11 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOn
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                   <div className="py-1">
-                    <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
+                    <a href="/profile" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
                       <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      Profil
+                      Profilul afacerii
                     </a>
                     <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
                       <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,13 +181,13 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOn
             // Not logged in - show login/signup buttons
             <div className="flex items-center space-x-3">
               <button
-                onClick={handleLogin}
+                onClick={login}
                 className="text-gray-700 hover:text-gray-900 font-medium px-4 py-2 rounded-xl hover:bg-gray-100/50 transition-colors"
               >
                 Conectare
               </button>
               <button
-                onClick={handleSignup}
+                onClick={signup}
                 className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift shadow-premium font-medium"
               >
                 Înregistrare

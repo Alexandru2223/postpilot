@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, forwardRef, useImperativeHandle } from 'react';
+import BusinessInfoCard from './BusinessInfoCard';
+import { BusinessData } from '../lib/useOnboarding';
 
 interface CalendarProps {
   onAddPost: () => void;
+  businessData?: BusinessData | null;
 }
 
 interface ScheduledPost {
@@ -18,7 +21,7 @@ interface ScheduledPost {
   postType: 'normal' | 'reel';
 }
 
-const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void }, CalendarProps>(({ onAddPost }, ref) => {
+const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void }, CalendarProps>(({ onAddPost, businessData }, ref) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
@@ -1416,7 +1419,7 @@ ${selectedPost.hashtags}`}</p>
               {selectedPost.postType === 'reel' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Idei Video</label>
-                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <div className="bg-black/20 rounded-lg p-3 border border-white/20 backdrop-blur-sm">
                     <div className="space-y-2 mb-3">
                       {[
                         `"Înainte și după" - Arată transformarea ${selectedPost.title.split(' ').slice(2, -2).join(' ')}`,
@@ -1430,11 +1433,11 @@ ${selectedPost.hashtags}`}</p>
                         `"Transformation Thursday" - Rezultate ${selectedPost.title.split(' ').slice(2, -2).join(' ')}`,
                         `"Weekend vibes" - Relaxare și ${selectedPost.title.split(' ').slice(2, -2).join(' ')}`
                       ].map((idea, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-                          <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold">
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-black/40 rounded-lg border border-white/20 hover:bg-black/60 transition-colors">
+                          <div className="flex-shrink-0 w-6 h-6 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center text-xs font-bold">
                             {index + 1}
                           </div>
-                          <p className="text-gray-900 text-sm leading-relaxed flex-1">{idea}</p>
+                          <p className="text-white text-sm leading-relaxed flex-1">{idea}</p>
                         </div>
                       ))}
                     </div>
@@ -1601,6 +1604,13 @@ ${selectedPost.hashtags}`}</p>
           </div>
         </div>
       </div>
+
+      {/* Business Info Card */}
+      {businessData && (
+        <div className="mt-6">
+          <BusinessInfoCard businessData={businessData} />
+        </div>
+      )}
     </div>
   );
 });

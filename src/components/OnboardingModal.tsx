@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0';
+import { apiService, BusinessType, Industry, OnboardingData } from '../lib/api';
 
 interface BusinessData {
   businessName: string;
@@ -20,74 +21,27 @@ interface BusinessData {
   competitors: string[];
 }
 
+interface BusinessDataErrors {
+  businessName?: string;
+  businessType?: string;
+  industry?: string;
+  targetAudience?: string;
+  socialMediaPlatforms?: string;
+  businessDescription?: string;
+  location?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  goals?: string;
+  challenges?: string;
+  brandVoice?: string;
+  competitors?: string;
+}
+
 interface OnboardingModalProps {
   isOpen: boolean;
   onComplete: (data: BusinessData) => void;
 }
-
-const businessTypes = [
-  "Salon de înfrumusețare",
-  "Restaurant/Café",
-  "Magazin de îmbrăcăminte",
-  "Salon de coafură",
-  "Clinică medicală",
-  "Spa/Masaj",
-  "Magazin de bijuterii",
-  "Salon de tatuaje",
-  "Magazin de sport",
-  "Farmacie",
-  "Magazin de electronice",
-  "Servicii de curățenie",
-  "Servicii de transport",
-  "Servicii de construcții",
-  "Servicii de IT",
-  "Servicii de marketing",
-  "Servicii de contabilitate",
-  "Servicii juridice",
-  "Servicii de educație",
-  "Altele"
-];
-
-const industries = [
-  "Beauty & Personal Care",
-  "Food & Beverage",
-  "Fashion & Accessories",
-  "Health & Wellness",
-  "Home & Garden",
-  "Sports & Fitness",
-  "Technology",
-  "Education",
-  "Professional Services",
-  "Entertainment",
-  "Travel & Tourism",
-  "Automotive",
-  "Real Estate",
-  "Financial Services",
-  "Non-profit",
-  "Altele"
-];
-
-const socialMediaPlatforms = [
-  "Instagram",
-  "Facebook",
-  "TikTok",
-  "YouTube",
-  "LinkedIn",
-  "Twitter/X",
-  "Pinterest",
-  "Snapchat"
-];
-
-const brandVoices = [
-  "Profesional și formal",
-  "Prietenos și accesibil",
-  "Tânăr și dinamic",
-  "Luxos și elegant",
-  "Humoristic și distractiv",
-  "Educațional și informativ",
-  "Motivant și inspirat",
-  "Relaxat și natural"
-];
 
 export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
   const { user } = useUser();
@@ -109,7 +63,9 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
     competitors: []
   });
 
-  const [errors, setErrors] = useState<Partial<BusinessData>>({});
+  const [errors, setErrors] = useState<BusinessDataErrors>({});
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() => {
     if (user?.email) {
@@ -117,8 +73,142 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
     }
   }, [user]);
 
+  useEffect(() => {
+    if (isOpen) {
+      loadOnboardingData();
+    }
+  }, [isOpen]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const loadOnboardingData = async () => {
+    setIsLoadingData(true);
+    try {
+      console.log('Loading onboarding data...');
+      const data = await apiService.getOnboardingData();
+      
+      console.log('Onboarding data loaded:', data);
+      console.log('Business types length:', data.businessTypes.length);
+      console.log('Industries length:', data.industries.length);
+      console.log('Social media platforms length:', data.socialMediaPlatforms.length);
+      console.log('Business goals length:', data.businessGoals.length);
+      console.log('Business challenges length:', data.businessChallenges.length);
+      console.log('Brand voices length:', data.brandVoices.length);
+      
+      setOnboardingData(data);
+    } catch (error) {
+      console.error('Error loading onboarding data:', error);
+      // Fallback la datele hardcodate în caz de eroare
+      setOnboardingData({
+        businessTypes: [
+          { id: 1, typeName: "Salon de înfrumusețare", category: "Beauty", isActive: true, sortOrder: 1 },
+          { id: 2, typeName: "Restaurant/Café", category: "Food", isActive: true, sortOrder: 2 },
+          { id: 3, typeName: "Magazin de îmbrăcăminte", category: "Fashion", isActive: true, sortOrder: 3 },
+          { id: 4, typeName: "Salon de coafură", category: "Beauty", isActive: true, sortOrder: 4 },
+          { id: 5, typeName: "Clinică medicală", category: "Health", isActive: true, sortOrder: 5 },
+          { id: 6, typeName: "Spa/Masaj", category: "Wellness", isActive: true, sortOrder: 6 },
+          { id: 7, typeName: "Magazin de bijuterii", category: "Fashion", isActive: true, sortOrder: 7 },
+          { id: 8, typeName: "Salon de tatuaje", category: "Beauty", isActive: true, sortOrder: 8 },
+          { id: 9, typeName: "Magazin de sport", category: "Sports", isActive: true, sortOrder: 9 },
+          { id: 10, typeName: "Farmacie", category: "Health", isActive: true, sortOrder: 10 },
+          { id: 11, typeName: "Magazin de electronice", category: "Technology", isActive: true, sortOrder: 11 },
+          { id: 12, typeName: "Servicii de curățenie", category: "Services", isActive: true, sortOrder: 12 },
+          { id: 13, typeName: "Servicii de transport", category: "Services", isActive: true, sortOrder: 13 },
+          { id: 14, typeName: "Servicii de construcții", category: "Services", isActive: true, sortOrder: 14 },
+          { id: 15, typeName: "Servicii de IT", category: "Technology", isActive: true, sortOrder: 15 },
+          { id: 16, typeName: "Servicii de marketing", category: "Services", isActive: true, sortOrder: 16 },
+          { id: 17, typeName: "Servicii de contabilitate", category: "Services", isActive: true, sortOrder: 17 },
+          { id: 18, typeName: "Servicii juridice", category: "Services", isActive: true, sortOrder: 18 },
+          { id: 19, typeName: "Servicii de educație", category: "Education", isActive: true, sortOrder: 19 },
+          { id: 20, typeName: "Altele", category: "Other", isActive: true, sortOrder: 20 }
+        ],
+        industries: [
+          { id: 1, industryName: "Beauty & Personal Care", category: "Beauty", isActive: true, sortOrder: 1 },
+          { id: 2, industryName: "Food & Beverage", category: "Food", isActive: true, sortOrder: 2 },
+          { id: 3, industryName: "Fashion & Accessories", category: "Fashion", isActive: true, sortOrder: 3 },
+          { id: 4, industryName: "Health & Wellness", category: "Health", isActive: true, sortOrder: 4 },
+          { id: 5, industryName: "Home & Garden", category: "Home", isActive: true, sortOrder: 5 },
+          { id: 6, industryName: "Sports & Fitness", category: "Sports", isActive: true, sortOrder: 6 },
+          { id: 7, industryName: "Technology", category: "Technology", isActive: true, sortOrder: 7 },
+          { id: 8, industryName: "Education", category: "Education", isActive: true, sortOrder: 8 },
+          { id: 9, industryName: "Professional Services", category: "Services", isActive: true, sortOrder: 9 },
+          { id: 10, industryName: "Entertainment", category: "Entertainment", isActive: true, sortOrder: 10 },
+          { id: 11, industryName: "Travel & Tourism", category: "Travel", isActive: true, sortOrder: 11 },
+          { id: 12, industryName: "Automotive", category: "Automotive", isActive: true, sortOrder: 12 },
+          { id: 13, industryName: "Real Estate", category: "Real Estate", isActive: true, sortOrder: 13 },
+          { id: 14, industryName: "Financial Services", category: "Finance", isActive: true, sortOrder: 14 },
+          { id: 15, industryName: "Non-profit", category: "Non-profit", isActive: true, sortOrder: 15 },
+          { id: 16, industryName: "Altele", category: "Other", isActive: true, sortOrder: 16 }
+        ],
+        socialMediaPlatforms: [
+          "Instagram",
+          "Facebook",
+          "TikTok",
+          "LinkedIn",
+          "Twitter/X",
+          "YouTube",
+          "Pinterest",
+          "Snapchat",
+          "WhatsApp Business",
+          "Telegram"
+        ],
+        businessGoals: [
+          "Creșterea vânzărilor",
+          "Creșterea engagement-ului",
+          "Creșterea brand awareness",
+          "Atragerea de clienți noi",
+          "Păstrarea clienților existenți",
+          "Creșterea conversiilor",
+          "Îmbunătățirea serviciului clienți",
+          "Lansarea de produse noi",
+          "Creșterea traficului pe website",
+          "Îmbunătățirea SEO"
+        ],
+        businessChallenges: [
+          "Lipsa de timp pentru conținut",
+          "Dificultatea în găsirea de idei noi",
+          "Costurile mari de marketing",
+          "Competiția intensă",
+          "Schimbările algoritmilor",
+          "Dificultatea în măsurarea ROI",
+          "Lipsa de personal specializat",
+          "Dificultatea în targetarea audienței",
+          "Lipsa de consistență în postări",
+          "Dificultatea în crearea de conținut viral"
+        ],
+        brandVoices: [
+          "Prietenos și accesibil",
+          "Profesional și autoritar",
+          "Creativ și inovativ",
+          "Calm și relaxant",
+          "Energic și motivant",
+          "Humoristic și distractiv",
+          "Educativ și informativ",
+          "Luxos și exclusivist",
+          "Sustainabil și eco-friendly",
+          "Tehnologic și modern"
+        ],
+        status: "SUCCESS",
+        message: "Onboarding data retrieved successfully"
+      });
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
   const validateStep = (step: number): boolean => {
-    const newErrors: Partial<BusinessData> = {};
+    const newErrors: BusinessDataErrors = {};
 
     switch (step) {
       case 1:
@@ -159,9 +249,6 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
 
   const handleComplete = () => {
     if (validateStep(currentStep)) {
-      // Salvează în localStorage
-      localStorage.setItem('businessData', JSON.stringify(businessData));
-      localStorage.setItem('onboardingCompleted', 'true');
       onComplete(businessData);
     }
   };
@@ -209,7 +296,14 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
 
         {/* Content */}
         <div className="p-6">
-          {currentStep === 1 && (
+          {isLoadingData && (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mr-3"></div>
+              <span className="text-gray-600">Se încarcă datele...</span>
+            </div>
+          )}
+
+          {!isLoadingData && onboardingData && currentStep === 1 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -224,63 +318,63 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Numele afacerii *
                 </label>
-                                 <input
-                   type="text"
-                   value={businessData.businessName}
-                   onChange={(e) => updateBusinessData('businessName', e.target.value)}
-                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                     errors.businessName ? 'border-red-500' : 'border-gray-300'
-                   }`}
-                   placeholder="Ex: Salonul meu de înfrumusețare"
-                 />
+                <input
+                  type="text"
+                  value={businessData.businessName}
+                  onChange={(e) => updateBusinessData('businessName', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
+                    errors.businessName ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Salonul meu de înfrumusețare"
+                />
                 {errors.businessName && (
                   <p className="text-red-500 text-sm mt-1">{errors.businessName}</p>
                 )}
               </div>
 
-                             <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                   Tipul de afacere *
-                 </label>
-                                   <div className="relative">
-                    <select
-                      value={businessData.businessType}
-                      onChange={(e) => updateBusinessData('businessType', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                        errors.businessType ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      style={{ color: '#ffffff' }}
-                    >
-                      <option value="" style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>Selectează tipul de afacere</option>
-                      {businessTypes.map((type) => (
-                        <option key={type} value={type} style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipul de afacere *
+                </label>
+                <div className="relative">
+                  <select
+                    value={businessData.businessType}
+                    onChange={(e) => updateBusinessData('businessType', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
+                      errors.businessType ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    style={{ color: '#ffffff' }}
+                  >
+                    <option value="" style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>Selectează tipul de afacere</option>
+                    {onboardingData?.businessTypes?.map((type) => (
+                      <option key={type.id} value={type.typeName} style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>{type.typeName}</option>
+                    ))}
+                  </select>
+                </div>
                 {errors.businessType && (
                   <p className="text-red-500 text-sm mt-1">{errors.businessType}</p>
                 )}
               </div>
 
-                             <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                   Industria *
-                 </label>
-                                   <div className="relative">
-                    <select
-                      value={businessData.industry}
-                      onChange={(e) => updateBusinessData('industry', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                        errors.industry ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      style={{ color: '#ffffff' }}
-                    >
-                      <option value="" style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>Selectează industria</option>
-                      {industries.map((industry) => (
-                        <option key={industry} value={industry} style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>{industry}</option>
-                      ))}
-                    </select>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Industria *
+                </label>
+                <div className="relative">
+                  <select
+                    value={businessData.industry}
+                    onChange={(e) => updateBusinessData('industry', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
+                      errors.industry ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    style={{ color: '#ffffff' }}
+                  >
+                    <option value="" style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>Selectează industria</option>
+                    {onboardingData?.industries?.map((industry) => (
+                      <option key={industry.id} value={industry.industryName} style={{ backgroundColor: 'rgba(31, 41, 55, 0.95)', color: '#ffffff' }}>{industry.industryName}</option>
+                    ))}
+                  </select>
+                </div>
                 {errors.industry && (
                   <p className="text-red-500 text-sm mt-1">{errors.industry}</p>
                 )}
@@ -288,7 +382,7 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
             </div>
           )}
 
-          {currentStep === 2 && (
+          {!isLoadingData && onboardingData && currentStep === 2 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -303,15 +397,15 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Audiența țintă *
                 </label>
-                                 <textarea
-                   value={businessData.targetAudience}
-                   onChange={(e) => updateBusinessData('targetAudience', e.target.value)}
-                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                     errors.targetAudience ? 'border-red-500' : 'border-gray-300'
-                   }`}
-                   rows={3}
-                   placeholder="Ex: Femei între 25-45 ani, interesate de beauty și lifestyle, din București"
-                 />
+                <textarea
+                  value={businessData.targetAudience}
+                  onChange={(e) => updateBusinessData('targetAudience', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400 ${
+                    errors.targetAudience ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  rows={3}
+                  placeholder="Ex: Femei între 25-45 ani, interesate de beauty și lifestyle, din București"
+                />
                 {errors.targetAudience && (
                   <p className="text-red-500 text-sm mt-1">{errors.targetAudience}</p>
                 )}
@@ -322,17 +416,17 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                   Platforme social media *
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                                     {socialMediaPlatforms.map((platform) => (
-                     <label key={platform} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
-                       <input
-                         type="checkbox"
-                         checked={businessData.socialMediaPlatforms.includes(platform)}
-                         onChange={() => toggleArrayItem('socialMediaPlatforms', platform)}
-                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                       />
-                       <span className="text-sm font-medium text-gray-700">{platform}</span>
-                     </label>
-                   ))}
+                  {onboardingData?.socialMediaPlatforms?.map((platform) => (
+                    <label key={platform} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
+                      <input
+                        type="checkbox"
+                        checked={businessData.socialMediaPlatforms.includes(platform)}
+                        onChange={() => toggleArrayItem('socialMediaPlatforms', platform)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{platform}</span>
+                    </label>
+                  ))}
                 </div>
                 {errors.socialMediaPlatforms && (
                   <p className="text-red-500 text-sm mt-1">{errors.socialMediaPlatforms}</p>
@@ -341,14 +435,14 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
             </div>
           )}
 
-          {currentStep === 3 && (
+          {!isLoadingData && onboardingData && currentStep === 3 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Descrierea afacerii
+                  Despre afacerea ta
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  O descriere detaliată ne ajută să înțelegem mai bine serviciile tale.
+                  Spune-ne mai multe despre afacerea ta și cum putem să te ajutăm.
                 </p>
               </div>
 
@@ -356,15 +450,15 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Descrierea afacerii *
                 </label>
-                                 <textarea
-                   value={businessData.businessDescription}
-                   onChange={(e) => updateBusinessData('businessDescription', e.target.value)}
-                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                     errors.businessDescription ? 'border-red-500' : 'border-gray-300'
-                   }`}
-                   rows={4}
-                   placeholder="Descrie serviciile tale, ce te face special, și ce oferi clienților tăi..."
-                 />
+                <textarea
+                  value={businessData.businessDescription}
+                  onChange={(e) => updateBusinessData('businessDescription', e.target.value)}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400 ${
+                    errors.businessDescription ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  rows={4}
+                  placeholder="Descrie afacerea ta, serviciile sau produsele oferite..."
+                />
                 {errors.businessDescription && (
                   <p className="text-red-500 text-sm mt-1">{errors.businessDescription}</p>
                 )}
@@ -374,85 +468,88 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Locația *
                 </label>
-                                 <input
-                   type="text"
-                   value={businessData.location}
-                   onChange={(e) => updateBusinessData('location', e.target.value)}
-                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm ${
-                     errors.location ? 'border-red-500' : 'border-gray-300'
-                   }`}
-                   placeholder="Ex: București, Sector 1"
-                 />
+                                  <input
+                    type="text"
+                    value={businessData.location}
+                    onChange={(e) => updateBusinessData('location', e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400 ${
+                      errors.location ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Ex: București, România"
+                  />
                 {errors.location && (
                   <p className="text-red-500 text-sm mt-1">{errors.location}</p>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Website (opțional)
+                    Website
                   </label>
-                                     <input
-                     type="url"
-                     value={businessData.website}
-                     onChange={(e) => updateBusinessData('website', e.target.value)}
-                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm"
-                     placeholder="https://www.example.com"
-                   />
-                 </div>
-                 <div>
-                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                     Telefon (opțional)
-                   </label>
-                   <input
-                     type="tel"
-                     value={businessData.phone}
-                     onChange={(e) => updateBusinessData('phone', e.target.value)}
-                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm"
-                     placeholder="+40 123 456 789"
-                   />
+                  <input
+                    type="url"
+                    value={businessData.website}
+                    onChange={(e) => updateBusinessData('website', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400"
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefon
+                  </label>
+                  <input
+                    type="tel"
+                    value={businessData.phone}
+                    onChange={(e) => updateBusinessData('phone', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400"
+                    placeholder="+40 123 456 789"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={businessData.email}
+                    onChange={(e) => updateBusinessData('email', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-gray-400"
+                    placeholder="contact@example.com"
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {currentStep === 4 && (
+          {!isLoadingData && onboardingData && currentStep === 4 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Obiective și provocări
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Înțelegerea obiectivelor și provocărilor tale ne ajută să generăm conținut mai relevant.
+                  Spune-ne ce vrei să realizezi și cu ce te confrunți în prezent.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Ce obiective ai pentru social media? *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Obiectivele tale *
                 </label>
                 <div className="space-y-2">
-                  {[
-                    "Creșterea numărului de urmăritori",
-                    "Creșterea vânzărilor",
-                    "Creșterea conștientizării brandului",
-                    "Atragerea de clienți noi",
-                    "Păstrarea clienților existenți",
-                    "Creșterea engagement-ului",
-                    "Promovarea serviciilor noi",
-                    "Construirea unei comunități"
-                                     ].map((goal) => (
-                     <label key={goal} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
-                       <input
-                         type="checkbox"
-                         checked={businessData.goals.includes(goal)}
-                         onChange={() => toggleArrayItem('goals', goal)}
-                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                       />
-                       <span className="text-sm text-gray-700">{goal}</span>
-                     </label>
-                   ))}
+                  {onboardingData?.businessGoals?.map((goal) => (
+                    <label key={goal} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
+                      <input
+                        type="checkbox"
+                        checked={businessData.goals.includes(goal)}
+                        onChange={() => toggleArrayItem('goals', goal)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{goal}</span>
+                    </label>
+                  ))}
                 </div>
                 {errors.goals && (
                   <p className="text-red-500 text-sm mt-1">{errors.goals}</p>
@@ -460,30 +557,21 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Ce provocări întâmpini pe social media? *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Provocările tale *
                 </label>
                 <div className="space-y-2">
-                  {[
-                    "Lipsa de timp pentru conținut",
-                    "Dificultatea în găsirea de idei noi",
-                    "Engagement scăzut",
-                    "Dificultatea în atragerea de clienți",
-                    "Competiția mare",
-                    "Algoritmii social media",
-                    "Consistența în postare",
-                    "Măsurarea rezultatelor"
-                                     ].map((challenge) => (
-                     <label key={challenge} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
-                       <input
-                         type="checkbox"
-                         checked={businessData.challenges.includes(challenge)}
-                         onChange={() => toggleArrayItem('challenges', challenge)}
-                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                       />
-                       <span className="text-sm text-gray-700">{challenge}</span>
-                     </label>
-                   ))}
+                  {onboardingData?.businessChallenges?.map((challenge) => (
+                    <label key={challenge} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
+                      <input
+                        type="checkbox"
+                        checked={businessData.challenges.includes(challenge)}
+                        onChange={() => toggleArrayItem('challenges', challenge)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{challenge}</span>
+                    </label>
+                  ))}
                 </div>
                 {errors.challenges && (
                   <p className="text-red-500 text-sm mt-1">{errors.challenges}</p>
@@ -492,52 +580,39 @@ export default function OnboardingModal({ isOpen, onComplete }: OnboardingModalP
             </div>
           )}
 
-          {currentStep === 5 && (
+          {!isLoadingData && onboardingData && currentStep === 5 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Vocea brandului
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Vocea brandului definește cum vrei să comunici cu audiența ta.
+                  Alege vocea care reflectă cel mai bine personalitatea brandului tău.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Care este vocea brandului tău? *
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vocea brandului *
                 </label>
                 <div className="space-y-2">
-                                   {brandVoices.map((voice) => (
-                   <label key={voice} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
-                     <input
-                       type="radio"
-                       name="brandVoice"
-                       value={voice}
-                       checked={businessData.brandVoice === voice}
-                       onChange={(e) => updateBusinessData('brandVoice', e.target.value)}
-                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                     />
-                     <span className="text-sm text-gray-700">{voice}</span>
-                   </label>
-                 ))}
+                  {onboardingData?.brandVoices?.map((voice) => (
+                    <label key={voice} className="flex items-center space-x-3 p-3 border border-gray-300 rounded-xl hover:bg-gray-50/50 cursor-pointer bg-white/5 backdrop-blur-sm">
+                      <input
+                        type="radio"
+                        name="brandVoice"
+                        value={voice}
+                        checked={businessData.brandVoice === voice}
+                        onChange={(e) => updateBusinessData('brandVoice', e.target.value)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{voice}</span>
+                    </label>
+                  ))}
                 </div>
                 {errors.brandVoice && (
                   <p className="text-red-500 text-sm mt-1">{errors.brandVoice}</p>
                 )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Competitori principali (opțional)
-                </label>
-                                 <textarea
-                   value={businessData.competitors.join(', ')}
-                   onChange={(e) => updateBusinessData('competitors', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/10 backdrop-blur-sm"
-                   rows={2}
-                   placeholder="Ex: Salon Beauty, Nail Art Studio, Beauty Center (separate prin virgulă)"
-                 />
               </div>
             </div>
           )}

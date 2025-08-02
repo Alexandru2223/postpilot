@@ -1,7 +1,6 @@
 'use client';
 
-// Removed unused useState import
-
+import { useState } from 'react';
 import { BusinessData } from '../lib/useOnboarding';
 
 interface SidebarProps {
@@ -10,9 +9,10 @@ interface SidebarProps {
   isMobileMenuOpen: boolean;
   onMobileMenuClose: () => void;
   businessData?: BusinessData | null;
+  isDemo?: boolean;
 }
 
-export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOpen, onMobileMenuClose, businessData }: SidebarProps) {
+export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOpen, onMobileMenuClose, businessData, isDemo = false }: SidebarProps) {
   const menuItems = [
     {
       id: 'calendar',
@@ -60,8 +60,8 @@ export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOp
     <>
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30" 
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
           onClick={onMobileMenuClose}
         />
       )}
@@ -69,20 +69,50 @@ export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOp
       {/* Sidebar */}
       <div className={`fixed lg:static left-0 z-40 w-64 lg:w-72 glass border-r border-gray-200/50 transform transition-transform duration-300 ease-in-out ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      } ${isMobileMenuOpen ? 'top-14 sm:top-16 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:top-0 lg:h-full' : 'top-0 h-full'}`}>
+      } ${
+        isMobileMenuOpen ? 'top-14 sm:top-16 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:top-0 lg:h-full' : 'top-0 h-full'
+      }`}>
         <div className="flex flex-col h-full">
           {/* Mobile User Info - Only shown when mobile menu is open */}
           <div className="lg:hidden p-4 sm:p-6 border-b border-gray-200/50">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 sm:w-12 sm:h-12 gradient-secondary rounded-full flex items-center justify-center shadow-premium">
-                <span className="text-base sm:text-lg font-medium text-white">U</span>
+                <span className="text-base sm:text-lg font-medium text-white">D</span>
               </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Utilizator Demo</h3>
-                <p className="text-xs sm:text-sm text-gray-500">utilizator@example.com</p>
+              <div className="flex-1">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                  {isDemo ? 'Demo User' : 'Utilizator Demo'}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  {isDemo ? 'demo@socialdrive.com' : 'utilizator@example.com'}
+                </p>
+                {isDemo && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full mt-1">DEMO</span>
+                )}
               </div>
+              {isDemo && (
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                </button>
+              )}
             </div>
             <div className="mt-3 sm:mt-4 space-y-2">
+              {isDemo && (
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="flex items-center w-full text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7m-7 7h18m-9-9v18" />
+                  </svg>
+                  Înapoi la Homepage
+                </button>
+              )}
               <a href="#" className="flex items-center text-sm text-gray-700 hover:text-blue-600 transition-colors">
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -120,11 +150,11 @@ export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOp
                   onSectionChange(item.id);
                   onMobileMenuClose(); // Close mobile menu when item is clicked
                 }}
-                className={`w-full text-left p-3 sm:p-4 rounded-xl transition-all duration-200 hover-lift ${
-                  activeSection === item.id 
-                    ? 'gradient-primary text-white shadow-premium' 
-                    : 'text-gray-700 hover:bg-gray-50/50'
-                }`}
+                                  className={`w-full text-left p-3 sm:p-4 rounded-xl transition-all duration-200 hover-lift ${
+                    activeSection === item.id 
+                      ? 'gradient-primary text-white shadow-premium' 
+                      : 'text-gray-700 hover:bg-gray-50/50'
+                  }`}
               >
                 <div className="flex items-center space-x-3">
                   <span className={`${activeSection === item.id ? 'text-white' : 'text-gray-500'}`}>
@@ -141,51 +171,19 @@ export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOp
             ))}
           </nav>
 
-          {/* Business Info Section */}
-          {businessData && (
-            <div className="p-3 sm:p-4 border-t border-gray-200/50">
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-premium">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                  <svg className="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  Afacerea ta
-                </h3>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-xs text-gray-500">Nume</p>
-                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.businessName}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Tip</p>
-                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.businessType}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Locație</p>
-                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.location}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Platforme</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {businessData.socialMediaPlatforms.slice(0, 3).map((platform) => (
-                        <span key={platform} className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
-                          {platform}
-                        </span>
-                      ))}
-                      {businessData.socialMediaPlatforms.length > 3 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{businessData.socialMediaPlatforms.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Footer */}
-          <div className="p-3 sm:p-4 border-t border-gray-200/50">
+          <div className="p-3 sm:p-4 border-t border-gray-200/50 space-y-3">
+            {isDemo && (
+              <button 
+                onClick={() => window.location.href = '/'}
+                className="w-full flex items-center justify-center space-x-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50/50 rounded-lg py-2 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7m-7 7h18m-9-9v18" />
+                </svg>
+                <span>Înapoi la Homepage</span>
+              </button>
+            )}
             <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl p-3 sm:p-4 border border-blue-500/30">
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">

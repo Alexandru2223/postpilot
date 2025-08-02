@@ -13,8 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PostPilot AI - Social Media Content Planning",
-  description: "AI-powered social media content planning and scheduling platform",
+  title: "SocialDrive - Revoluționează Prezența Digitală",
+  description: "Platforma AI care transformă modul în care afacerile mici gestionează social media. Conținut inteligent, analize avansate, rezultate reale.",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  themeColor: "#667eea",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SocialDrive"
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false
+  }
 };
 
 export default function RootLayout({

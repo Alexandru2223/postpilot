@@ -1,422 +1,232 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
-import Calendar from '../components/Calendar';
-import AddPostModal from '../components/AddPostModal';
-import OnboardingModal from '../components/OnboardingModal';
-import { useOnboarding } from '../lib/useOnboarding';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../lib/useAuth';
+import { useRouter } from 'next/navigation';
 
-export default function Dashboard() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('calendar');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const calendarRef = useRef<{ handleAddToCalendar: (post: {
-    id: number;
-    title: string;
-    platform: string;
-    time: string;
-    status: 'scheduled' | 'draft' | 'published';
-    date: string;
-  }) => void }>(null);
+export default function LandingPage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  const [currentFeature, setCurrentFeature] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Onboarding hook
-  const {
-    isOnboardingOpen,
-    setIsOnboardingOpen,
-    businessData,
-    isOnboardingCompleted,
-    handleOnboardingComplete,
-    resetOnboarding,
-    isLoading
-  } = useOnboarding();
-
-  const handleMobileMenuToggle = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const handleMobileMenuClose = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // Function to handle adding posts to calendar
-  const handleAddToCalendar = (newPost: {
-    id: number;
-    title: string;
-    platform: string;
-    time: string;
-    status: 'scheduled' | 'draft' | 'published';
-    date: string;
-  }) => {
-    // This will be passed to the Calendar component
-    console.log('Dashboard: New post added to calendar:', newPost);
-    // Call the Calendar component's method to add the post
-    if (calendarRef.current && calendarRef.current.handleAddToCalendar) {
-      console.log('Dashboard: Calling calendar handleAddToCalendar');
-      calendarRef.current.handleAddToCalendar(newPost);
-    } else {
-      console.log('Dashboard: Calendar ref or method not available');
+  const features = [
+    {
+      title: "AI-Powered Content Creation",
+      description: "Generate engaging social media content with advanced AI that understands your brand voice",
+      icon: "🤖",
+      color: "from-purple-500 to-pink-500"
+    },
+    {
+      title: "Smart Analytics Dashboard",
+      description: "Track performance across all platforms with real-time insights and predictive analytics",
+      icon: "📊",
+      color: "from-blue-500 to-cyan-500"
+    },
+    {
+      title: "Automated Scheduling",
+      description: "Schedule posts across multiple platforms with intelligent timing optimization",
+      icon: "⏰",
+      color: "from-green-500 to-emerald-500"
+    },
+    {
+      title: "Brand Voice Optimization",
+      description: "Maintain consistent brand voice across all your social media channels",
+      icon: "🎯",
+      color: "from-orange-500 to-red-500"
     }
-  };
+  ];
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'calendar':
-        return <Calendar ref={calendarRef} onAddPost={() => setIsModalOpen(true)} />;
-      case 'ideas':
-        return <IdeasPage />;
-      case 'captions':
-        return <CaptionsPage />;
-      case 'hashtags':
-        return <HashtagsPage />;
-      default:
-        return <Calendar ref={calendarRef} onAddPost={() => setIsModalOpen(true)} />;
+  useEffect(() => {
+    setIsVisible(true);
+    const interval = setInterval(() => {
+      setCurrentFeature((prev) => (prev + 1) % features.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/dashboard');
     }
-  };
+  }, [user, isLoading, router]);
 
-  // Dacă încă se încarcă, afișează loading
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Se încarcă...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
+          <p className="mt-4 text-gray-300">Se încarcă...</p>
         </div>
       </div>
     );
   }
 
-  // Dacă onboarding-ul nu este completat, afișează doar navbar-ul și modal-ul de onboarding
-  if (!isOnboardingCompleted) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navbar
-          onMobileMenuToggle={handleMobileMenuToggle}
-          isMobileMenuOpen={isMobileMenuOpen}
-          onResetOnboarding={resetOnboarding}
-        />
-        <OnboardingModal
-          isOpen={isOnboardingOpen}
-          onComplete={handleOnboardingComplete}
-        />
-      </div>
-    );
+  if (user) {
+    return null; // Will redirect to dashboard
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar
-        onMobileMenuToggle={handleMobileMenuToggle}
-        isMobileMenuOpen={isMobileMenuOpen}
-        onResetOnboarding={resetOnboarding}
-      />
-      <div className="flex">
-        <Sidebar
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-          isMobileMenuOpen={isMobileMenuOpen}
-          onMobileMenuClose={handleMobileMenuClose}
-          businessData={businessData}
-        />
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 lg:ml-0 min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5rem)]">
-          {renderContent()}
-        </main>
-      </div>
-      <AddPostModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
-        onAddToCalendar={handleAddToCalendar}
-      />
-    </div>
-  );
-}
-
-// Enhanced IdeasPage component with premium styling and mobile responsiveness
-function IdeasPage() {
-  const mockIdeas = [
-    {
-      id: 1,
-      title: "Transformarea salonului tău de unghii",
-      description: "O serie de postări care să arate procesul de transformare al unui salon de unghii, de la concept la realitate.",
-      platform: "Instagram",
-      category: "Beauty & Lifestyle",
-      engagement: "8.5K"
-    },
-    {
-      id: 2,
-      title: "Behind the scenes - Procesul de creare",
-      description: "Postări care să dezvăluie procesul din spatele creării design-urilor unice pentru unghii.",
-      platform: "TikTok",
-      category: "Educational",
-      engagement: "12.3K"
-    },
-    {
-      id: 3,
-      title: "Tipuri pentru îngrijirea unghiilor",
-      description: "Conținut educațional cu sfaturi practice pentru îngrijirea unghiilor acasă.",
-      platform: "Instagram",
-      category: "Tips & Tricks",
-      engagement: "6.7K"
-    },
-    {
-      id: 4,
-      title: "Noua colecție de design-uri",
-      description: "Lansarea unei colecții noi de design-uri pentru unghii, inspirate din tendințele actuale.",
-      platform: "Facebook",
-      category: "Product Launch",
-      engagement: "4.2K"
-    },
-    {
-      id: 5,
-      title: "Client Spotlight - Transformări incredibile",
-      description: "Serie de postări care să pună în evidență transformările incredibile ale clienților.",
-      platform: "Instagram",
-      category: "Testimonials",
-      engagement: "9.1K"
-    }
-  ];
-
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Idei postări</h1>
-          <p className="text-sm sm:text-base text-gray-600">Descoperă conținut nou și captivant pentru social media</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 animate-pulse"></div>
+        <div className="absolute top-0 left-0 w-full h-full">
+          {[...Array(10)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 sm:w-2 sm:h-2 bg-purple-400 rounded-full animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
+              }}
+            />
+          ))}
         </div>
-        <button className="gradient-primary text-white px-4 py-3 sm:px-6 lg:px-8 lg:py-4 rounded-xl hover-lift shadow-premium flex items-center justify-center space-x-2 font-medium text-sm sm:text-base">
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Generează idei noi</span>
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {mockIdeas.map((idea) => (
-          <div key={idea.id} className="card-glass rounded-xl p-4 sm:p-6 shadow-premium hover-lift transition-all duration-300">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-medium rounded-full">
-                {idea.platform}
-              </span>
-              <span className="text-xs text-gray-500 font-medium">{idea.engagement} engagement</span>
+      {/* Navigation */}
+      <nav className="relative z-10 flex justify-between items-center p-4 sm:p-6">
+        <div className="flex items-center space-x-2">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm sm:text-lg">S</span>
+          </div>
+          <span className="text-white font-bold text-lg sm:text-xl">SocialDrive</span>
+        </div>
+        <div className="flex space-x-2 sm:space-x-4">
+          <button 
+            onClick={() => window.location.href = '/auth/login'}
+            className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base"
+          >
+            Conectare
+          </button>
+          <button 
+            onClick={() => window.location.href = '/auth/login'}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 sm:px-6 py-2 rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 text-sm sm:text-base"
+          >
+            Începe Gratuit
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="text-center">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+            Revoluționează
+            <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Prezența Digitală
+            </span>
+          </h1>
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto px-4">
+            Platforma AI care transformă modul în care afacerile mici gestionează social media. 
+            Conținut inteligent, analize avansate, rezultate reale.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 px-4">
+            <button 
+              onClick={() => window.location.href = '/auth/login'}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+            >
+              Începe Gratuit - 14 Zile
+            </button>
+            <button 
+              onClick={() => router.push('/demo')}
+              className="border border-purple-400 text-purple-400 px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-purple-400 hover:text-white transition-all duration-300 w-full sm:w-auto"
+            >
+              Vezi Demo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
+            De ce SocialDrive?
+          </h2>
+          <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
+            Combinația perfectă între tehnologie AI și simplitate pentru afacerile mici
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-20">
+          {features.map((feature, index) => (
+            <div 
+              key={index}
+              className={`bg-white/5 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 ${
+                currentFeature === index ? 'scale-105 shadow-xl shadow-purple-500/25' : ''
+              }`}
+            >
+              <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r ${feature.color} rounded-xl flex items-center justify-center mb-3 sm:mb-4 mx-auto`}>
+                <span className="text-xl sm:text-2xl">{feature.icon}</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 text-center">{feature.title}</h3>
+              <p className="text-gray-300 text-sm sm:text-base text-center">{feature.description}</p>
             </div>
-            
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-              {idea.title}
-            </h3>
-            
-            <p className="text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3">
-              {idea.description}
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 text-center">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+            <div className="text-3xl sm:text-4xl font-bold text-white mb-2">500+</div>
+            <div className="text-gray-300 text-sm sm:text-base">Afaceri Active</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+            <div className="text-3xl sm:text-4xl font-bold text-white mb-2">10K+</div>
+            <div className="text-gray-300 text-sm sm:text-base">Postări Generate</div>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+            <div className="text-3xl sm:text-4xl font-bold text-white mb-2">98%</div>
+            <div className="text-gray-300 text-sm sm:text-base">Satisfacție Clienți</div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+        <div className="text-center">
+          <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 border border-white/20">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
+              Gata să-ți transformi prezența digitală?
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
+              Alătură-te sutelor de afaceri mici care deja folosesc SocialDrive pentru a-și crește prezența online
             </p>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full self-start">
-                {idea.category}
-              </span>
-              <button className="gradient-primary text-white px-3 sm:px-4 py-2 rounded-lg hover-lift shadow-premium text-sm font-medium transition-all duration-200">
-                Adaugă în calendar
-              </button>
-            </div>
+            <button 
+              onClick={() => window.location.href = '/auth/login'}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl text-lg sm:text-xl font-semibold hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+            >
+              Începe Acum - Gratuit
+            </button>
+            <p className="text-gray-400 mt-4 text-sm sm:text-base">Fără card de credit • Anulare oricând</p>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Enhanced CaptionsPage component with premium styling and mobile responsiveness
-function CaptionsPage() {
-  const mockCaptions = [
-    {
-      id: 1,
-      caption: "✨ Descoperă magia transformării! La salonul nostru, fiecare detaliu contează și fiecare client este special. Programează-ți vizita și lasă-ne să îți facem ziua mai frumoasă! 💫 #BeautyTransformation #LocalBusiness #Bucuresti #Romania #SmallBusiness #SupportLocal",
-      platform: "Instagram",
-      length: 280,
-      category: "Promotional"
-    },
-    {
-      id: 2,
-      caption: "🎨 Behind the scenes: Procesul nostru de creare a design-urilor unice pentru unghii. De la inspirație la realizare, fiecare pas este important! Swipe pentru a vedea transformarea completă 👆 #BehindTheScenes #NailArt #CreativeProcess #BucurestiNails",
-      platform: "Instagram",
-      length: 245,
-      category: "Behind the Scenes"
-    },
-    {
-      id: 3,
-      caption: "💡 Tip de la expert: Pentru unghii sănătoase și frumoase, hidratează-le zilnic cu ulei de unghii și evită să le muști. Micile gesturi fac diferența! #NailCare #BeautyTips #HealthyNails #ExpertAdvice #BeautyRoutine",
-      platform: "Facebook",
-      length: 198,
-      category: "Educational"
-    },
-    {
-      id: 4,
-      caption: "🔥 NOUA COLECȚIE ESTE AICI! Design-uri inspirate din cele mai noi tendințe, perfecte pentru orice ocazie. Care îți place cel mai mult? Comentează mai jos! 👇 #NewCollection #NailDesign #Trending #FashionNails #BucurestiBeauty",
-      platform: "Instagram",
-      length: 267,
-      category: "Product Launch"
-    },
-    {
-      id: 5,
-      caption: "👑 CLIENT SPOTLIGHT: Transformarea incredibilă a Mariei! De la unghii simple la o operă de artă. Rezultatul vorbește de la sine! Mulțumim pentru încredere! ❤️ #ClientSpotlight #Transformation #NailArt #BeforeAfter #HappyClient #BucurestiNails",
-      platform: "Instagram",
-      length: 289,
-      category: "Testimonial"
-    }
-  ];
-
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Generează text captivant</h1>
-          <p className="text-sm sm:text-base text-gray-600">Caption-uri optimizate pentru fiecare platformă social media</p>
         </div>
-        <button className="gradient-primary text-white px-4 py-3 sm:px-6 lg:px-8 lg:py-4 rounded-xl hover-lift shadow-premium flex items-center justify-center space-x-2 font-medium text-sm sm:text-base">
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Generează caption</span>
-        </button>
       </div>
 
-      <div className="space-y-4">
-        {mockCaptions.map((caption) => (
-          <div key={caption.id} className="card-glass rounded-xl p-4 sm:p-6 shadow-premium hover-lift transition-all duration-300">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 space-y-2 sm:space-y-0">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-medium rounded-full">
-                  {caption.platform}
-                </span>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                  {caption.category}
-                </span>
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/10 mt-12 sm:mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm sm:text-lg">S</span>
               </div>
-              <span className="text-xs text-gray-500 font-medium">{caption.length} caractere</span>
+              <span className="text-white font-bold text-lg sm:text-xl">SocialDrive</span>
             </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border border-white/20">
-              <p className="text-sm sm:text-base text-gray-900 whitespace-pre-line leading-relaxed">
-                {caption.caption}
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-              <div className="flex space-x-2">
-                <button className="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-50/50 rounded-lg transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-400 hover:text-green-400 hover:bg-green-50/50 rounded-lg transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </button>
-              </div>
-              <button className="gradient-primary text-white px-3 sm:px-4 py-2 rounded-lg hover-lift shadow-premium text-sm font-medium transition-all duration-200">
-                Folosește caption-ul
-              </button>
+            <div className="flex space-x-4 sm:space-x-6 text-gray-400 text-sm sm:text-base">
+              <a href="#" className="hover:text-white transition-colors">Termeni</a>
+              <a href="#" className="hover:text-white transition-colors">Confidențialitate</a>
+              <a href="#" className="hover:text-white transition-colors">Suport</a>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Enhanced HashtagsPage component with premium styling and mobile responsiveness
-function HashtagsPage() {
-  const hashtagCategories = [
-    {
-      id: 1,
-      name: "Beauty & Nails",
-      hashtags: [
-        "#BeautyTransformation", "#NailArt", "#NailDesign", "#BeautyTips", 
-        "#NailCare", "#BeautyRoutine", "#NailInspiration", "#BeautyGoals"
-      ]
-    },
-    {
-      id: 2,
-      name: "Business & Local",
-      hashtags: [
-        "#LocalBusiness", "#SmallBusiness", "#SupportLocal", "#Bucuresti", 
-        "#Romania", "#Entrepreneur", "#BusinessOwner", "#LocalShop"
-      ]
-    },
-    {
-      id: 3,
-      name: "Lifestyle & Fashion",
-      hashtags: [
-        "#Lifestyle", "#Fashion", "#Style", "#Trending", "#FashionNails", 
-        "#LifestyleBlogger", "#FashionInspiration", "#TrendyNails"
-      ]
-    },
-    {
-      id: 4,
-      name: "Educational & Tips",
-      hashtags: [
-        "#BeautyTips", "#NailCareTips", "#ExpertAdvice", "#BeautyEducation", 
-        "#NailTutorial", "#BeautyHacks", "#NailCareRoutine", "#BeautyExpert"
-      ]
-    },
-    {
-      id: 5,
-      name: "Client & Testimonials",
-      hashtags: [
-        "#ClientSpotlight", "#HappyClient", "#BeforeAfter", "#Transformation", 
-        "#Testimonial", "#ClientReview", "#SatisfiedCustomer", "#Results"
-      ]
-    }
-  ];
-
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Hashtag-uri</h1>
-          <p className="text-sm sm:text-base text-gray-600">Optimizează vizibilitatea cu hashtag-uri relevante</p>
         </div>
-        <button className="gradient-primary text-white px-4 py-3 sm:px-6 lg:px-8 lg:py-4 rounded-xl hover-lift shadow-premium flex items-center justify-center space-x-2 font-medium text-sm sm:text-base">
-          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Generează hashtag-uri</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {hashtagCategories.map((category) => (
-          <div key={category.id} className="card-glass rounded-xl p-4 sm:p-6 shadow-premium hover-lift transition-all duration-300">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-              </svg>
-              {category.name}
-            </h3>
-            
-            <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
-              {category.hashtags.map((hashtag, index) => (
-                <span 
-                  key={index} 
-                  className="px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-sm text-purple-300 rounded-lg text-xs sm:text-sm font-medium border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-200 cursor-pointer"
-                >
-                  {hashtag}
-                </span>
-              ))}
-            </div>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <span className="text-xs text-gray-500">
-                {category.hashtags.length} hashtag-uri
-              </span>
-              <button className="gradient-primary text-white px-3 sm:px-4 py-2 rounded-lg hover-lift shadow-premium text-sm font-medium transition-all duration-200">
-                Copiază toate
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      </footer>
     </div>
   );
 }

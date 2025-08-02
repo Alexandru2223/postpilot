@@ -1,0 +1,25 @@
+import { auth0 } from "../../../../lib/auth0"
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth0.getSession();
+    
+    if (!session?.tokenSet.accessToken) {
+      return NextResponse.json(
+        { error: 'No access token available' },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json({
+      accessToken: session.tokenSet.accessToken
+    });
+  } catch (error) {
+    console.error('Error getting access token:', error);
+    return NextResponse.json(
+      { error: 'Failed to get access token' },
+      { status: 500 }
+    );
+  }
+} 
