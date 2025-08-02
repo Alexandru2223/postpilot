@@ -2,14 +2,17 @@
 
 // Removed unused useState import
 
+import { BusinessData } from '../lib/useOnboarding';
+
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
   isMobileMenuOpen: boolean;
   onMobileMenuClose: () => void;
+  businessData?: BusinessData | null;
 }
 
-export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOpen, onMobileMenuClose }: SidebarProps) {
+export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOpen, onMobileMenuClose, businessData }: SidebarProps) {
   const menuItems = [
     {
       id: 'calendar',
@@ -137,6 +140,49 @@ export default function Sidebar({ activeSection, onSectionChange, isMobileMenuOp
               </button>
             ))}
           </nav>
+
+          {/* Business Info Section */}
+          {businessData && (
+            <div className="p-3 sm:p-4 border-t border-gray-200/50">
+              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 shadow-premium">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <svg className="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  Afacerea ta
+                </h3>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs text-gray-500">Nume</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.businessName}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Tip</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.businessType}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Locație</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{businessData.location}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Platforme</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {businessData.socialMediaPlatforms.slice(0, 3).map((platform) => (
+                        <span key={platform} className="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                          {platform}
+                        </span>
+                      ))}
+                      {businessData.socialMediaPlatforms.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          +{businessData.socialMediaPlatforms.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="p-3 sm:p-4 border-t border-gray-200/50">

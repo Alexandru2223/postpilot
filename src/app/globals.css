@@ -411,6 +411,67 @@ button, a, [role="button"] {
   user-select: none;
 }
 
+/* Custom select styling for onboarding modal */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Dropdown arrow styling */
+select:focus {
+  outline: none;
+}
+
+/* Custom select options styling */
+select option {
+  background-color: rgba(31, 41, 55, 0.95);
+  color: #ffffff;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Selected option styling - make text visible */
+select option:checked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+/* Selected option in the input field */
+select {
+  color: #ffffff !important;
+}
+
+/* Ensure dropdown opens downward and has proper styling */
+select:focus {
+  transform: translateY(0);
+}
+
+/* Custom select container with arrow */
+.relative {
+  position: relative;
+}
+
+.relative::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #6b7280;
+  pointer-events: none;
+  z-index: 10;
+}
+
 /* Allow text selection on content areas */
 p, h1, h2, h3, h4, h5, h6, span, div {
   -webkit-user-select: text;

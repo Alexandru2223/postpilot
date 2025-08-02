@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import Calendar from '../components/Calendar';
 import AddPostModal from '../components/AddPostModal';
+import OnboardingModal from '../components/OnboardingModal';
+import { useOnboarding } from '../lib/useOnboarding';
 
 export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +20,17 @@ export default function Dashboard() {
     status: 'scheduled' | 'draft' | 'published';
     date: string;
   }) => void }>(null);
+
+  // Onboarding hook
+  const {
+    isOnboardingOpen,
+    setIsOnboardingOpen,
+    businessData,
+    isOnboardingCompleted,
+    handleOnboardingComplete,
+    resetOnboarding,
+    isLoading
+  } = useOnboarding();
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -62,11 +75,41 @@ export default function Dashboard() {
     }
   };
 
+  // Dacă încă se încarcă, afișează loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Se încarcă...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Dacă onboarding-ul nu este completat, afișează doar navbar-ul și modal-ul de onboarding
+  if (!isOnboardingCompleted) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar
+          onMobileMenuToggle={handleMobileMenuToggle}
+          isMobileMenuOpen={isMobileMenuOpen}
+          onResetOnboarding={resetOnboarding}
+        />
+        <OnboardingModal
+          isOpen={isOnboardingOpen}
+          onComplete={handleOnboardingComplete}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar
         onMobileMenuToggle={handleMobileMenuToggle}
         isMobileMenuOpen={isMobileMenuOpen}
+        onResetOnboarding={resetOnboarding}
       />
       <div className="flex">
         <Sidebar
@@ -74,6 +117,7 @@ export default function Dashboard() {
           onSectionChange={setActiveSection}
           isMobileMenuOpen={isMobileMenuOpen}
           onMobileMenuClose={handleMobileMenuClose}
+          businessData={businessData}
         />
         <main className="flex-1 p-3 sm:p-4 lg:p-6 lg:ml-0 min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5rem)]">
           {renderContent()}
@@ -355,7 +399,7 @@ function HashtagsPage() {
               {category.hashtags.map((hashtag, index) => (
                 <span 
                   key={index} 
-                  className="px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-sm text-purple-600 rounded-lg text-xs sm:text-sm font-medium border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-200 cursor-pointer"
+                  className="px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur-sm text-purple-300 rounded-lg text-xs sm:text-sm font-medium border border-purple-500/20 hover:from-purple-500/20 hover:to-pink-500/20 transition-all duration-200 cursor-pointer"
                 >
                   {hashtag}
                 </span>

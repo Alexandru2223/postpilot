@@ -46,80 +46,313 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
     const currentMonth = today.getMonth();
     const currentDay = today.getDate();
     
-    // Calculate dates that align with the calendar logic
-    const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-    
-    // Create dates for tomorrow, day after tomorrow, etc.
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const tomorrowStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-    
-    const dayAfterTomorrow = new Date(today);
-    dayAfterTomorrow.setDate(today.getDate() + 2);
-    const dayAfterTomorrowStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(dayAfterTomorrow.getDate()).padStart(2, '0')}`;
-    
-    const threeDaysLater = new Date(today);
-    threeDaysLater.setDate(today.getDate() + 3);
-    const threeDaysLaterStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(threeDaysLater.getDate()).padStart(2, '0')}`;
-    
-    const fiveDaysLater = new Date(today);
-    fiveDaysLater.setDate(today.getDate() + 5);
-    const fiveDaysLaterStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(fiveDaysLater.getDate()).padStart(2, '0')}`;
+    // Helper function to create date string
+    const createDateStr = (daysOffset: number) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + daysOffset);
+      return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    };
     
     return [
+      // Today
       {
         id: 1,
         title: "Transformarea salonului tău de unghii",
-        caption: "Transformarea salonului tău de unghii",
-        hashtags: "#unghii #salon #transformare",
+        caption: "Descoperă cum să transformi salonul tău într-un spațiu modern și atractiv! ✨",
+        hashtags: "#unghii #salon #transformare #beauty #nailart",
         platform: "Instagram",
         time: "10:00",
         status: 'scheduled' as const,
-        date: todayStr,
+        date: createDateStr(0),
         postType: 'normal'
       },
       {
         id: 2,
         title: "Behind the scenes - Procesul de creare",
-        caption: "Behind the scenes - Procesul de creare",
-        hashtags: "#behindthescenes #creare #unghii",
+        caption: "Vezi cum se nasc designurile noastre unice! 🎨",
+        hashtags: "#behindthescenes #creare #unghii #naildesign",
         platform: "Facebook",
         time: "15:30",
         status: 'draft' as const,
-        date: todayStr,
-        postType: 'normal'
+        date: createDateStr(0),
+        postType: 'reel'
       },
       {
         id: 3,
-        title: "Tipuri pentru îngrijirea unghiilor",
-        caption: "Tipuri pentru îngrijirea unghiilor",
-        hashtags: "#ingrijire #unghii #tips",
+        title: "Tutorial: Design floral elegant",
+        caption: "Învață să creezi acest design floral elegant pas cu pas! 🌸",
+        hashtags: "#tutorial #floral #elegant #nailart",
         platform: "TikTok",
-        time: "12:00",
+        time: "18:00",
         status: 'scheduled' as const,
-        date: tomorrowStr,
-        postType: 'normal'
+        date: createDateStr(0),
+        postType: 'reel'
       },
+      
+      // Tomorrow
       {
         id: 4,
-        title: "Noua colecție de design-uri",
-        caption: "Noua colecție de design-uri",
-        hashtags: "#colectie #design #nou",
+        title: "Tipuri pentru îngrijirea unghiilor",
+        caption: "5 sfaturi esențiale pentru unghii sănătoase și frumoase! 💅",
+        hashtags: "#ingrijire #unghii #tips #beauty #health",
         platform: "Instagram",
-        time: "14:00",
-        status: 'draft' as const,
-        date: threeDaysLaterStr,
+        time: "12:00",
+        status: 'scheduled' as const,
+        date: createDateStr(1),
         postType: 'normal'
       },
       {
         id: 5,
-        title: "Client Spotlight - Transformări incredibile",
-        caption: "Client Spotlight - Transformări incredibile",
-        hashtags: "#clientspotlight #transformare #incredibil",
+        title: "Client Spotlight - Maria",
+        caption: "Rezultatul incredibil pentru Maria! Vezi transformarea completă! 👏",
+        hashtags: "#clientspotlight #maria #transformare #rezultate",
+        platform: "Instagram",
+        time: "14:30",
+        status: 'draft' as const,
+        date: createDateStr(1),
+        postType: 'normal'
+      },
+      
+      // Day 3
+      {
+        id: 6,
+        title: "Noua colecție de design-uri",
+        caption: "Introducem colecția noastră de primăvară! 🌺",
+        hashtags: "#colectie #design #nou #primavara #spring",
         platform: "Instagram",
         time: "11:00",
+        status: 'scheduled' as const,
+        date: createDateStr(2),
+        postType: 'normal'
+      },
+      {
+        id: 7,
+        title: "Q&A cu specialistul nostru",
+        caption: "Întrebări și răspunsuri cu specialistul nostru în nail art! 💬",
+        hashtags: "#qa #specialist #nailart #intrebari",
+        platform: "Facebook",
+        time: "16:00",
+        status: 'draft' as const,
+        date: createDateStr(2),
+        postType: 'reel'
+      },
+      
+      // Day 4
+      {
+        id: 8,
+        title: "Design geometric modern",
+        caption: "Design geometric modern pentru femeile care iubesc stilul minimalist! ⬜",
+        hashtags: "#geometric #modern #minimalist #style",
+        platform: "Instagram",
+        time: "13:00",
+        status: 'scheduled' as const,
+        date: createDateStr(3),
+        postType: 'normal'
+      },
+      
+      // Day 5
+      {
+        id: 9,
+        title: "Client Spotlight - Transformări incredibile",
+        caption: "Transformări incredibile care vor inspira! ✨",
+        hashtags: "#clientspotlight #transformare #incredibil #inspiratie",
+        platform: "Instagram",
+        time: "10:30",
         status: 'published' as const,
-        date: fiveDaysLaterStr,
+        date: createDateStr(4),
+        postType: 'normal'
+      },
+      {
+        id: 10,
+        title: "Tutorial: Ombre effect",
+        caption: "Învață să creezi efectul ombre perfect! 🌈",
+        hashtags: "#tutorial #ombre #effect #nailart",
+        platform: "TikTok",
+        time: "19:00",
+        status: 'scheduled' as const,
+        date: createDateStr(4),
+        postType: 'reel'
+      },
+      
+      // Day 6
+      {
+        id: 11,
+        title: "Produsele noastre favorite",
+        caption: "Produsele pe care le folosim în fiecare zi! 🛍️",
+        hashtags: "#produse #favorite #nailart #tools",
+        platform: "Instagram",
+        time: "15:00",
+        status: 'draft' as const,
+        date: createDateStr(5),
+        postType: 'normal'
+      },
+      
+      // Day 7
+      {
+        id: 12,
+        title: "Weekend vibes - Design relaxant",
+        caption: "Design perfect pentru weekend! 🌅",
+        hashtags: "#weekend #vibes #relaxant #design",
+        platform: "Instagram",
+        time: "12:30",
+        status: 'scheduled' as const,
+        date: createDateStr(6),
+        postType: 'normal'
+      },
+      
+      // Day 8
+      {
+        id: 13,
+        title: "Mistake Monday - Greșeli comune",
+        caption: "Greșelile pe care le facem toți și cum să le evităm! ❌",
+        hashtags: "#mistakemonday #greseli #comune #tips",
+        platform: "Facebook",
+        time: "09:00",
+        status: 'scheduled' as const,
+        date: createDateStr(7),
+        postType: 'reel'
+      },
+      
+      // Day 9
+      {
+        id: 14,
+        title: "Tip Tuesday - Sfaturi practice",
+        caption: "Sfaturi practice pentru unghii perfecte! 💡",
+        hashtags: "#tiptuesday #sfaturi #practice #perfect",
+        platform: "Instagram",
+        time: "14:00",
+        status: 'draft' as const,
+        date: createDateStr(8),
+        postType: 'normal'
+      },
+      
+      // Day 10
+      {
+        id: 15,
+        title: "Transformation Thursday",
+        caption: "Transformări spectaculoase în fiecare joi! 🔥",
+        hashtags: "#transformationthursday #spectaculos #transformare",
+        platform: "Instagram",
+        time: "11:30",
+        status: 'scheduled' as const,
+        date: createDateStr(9),
+        postType: 'normal'
+      },
+      
+      // Day 12
+      {
+        id: 16,
+        title: "Design pentru ocazii speciale",
+        caption: "Designuri perfecte pentru ocazii speciale! 🎉",
+        hashtags: "#ocaziispeciale #design #perfect #celebration",
+        platform: "Instagram",
+        time: "16:30",
+        status: 'scheduled' as const,
+        date: createDateStr(11),
+        postType: 'normal'
+      },
+      
+      // Day 14
+      {
+        id: 17,
+        title: "Client Spotlight - Ana",
+        caption: "Ana și transformarea ei incredibilă! 👑",
+        hashtags: "#clientspotlight #ana #transformare #incredibil",
+        platform: "Facebook",
+        time: "13:30",
+        status: 'published' as const,
+        date: createDateStr(13),
+        postType: 'normal'
+      },
+      
+      // Day 16
+      {
+        id: 18,
+        title: "Tutorial: French manicure modern",
+        caption: "French manicure cu un twist modern! 🇫🇷",
+        hashtags: "#tutorial #french #manicure #modern",
+        platform: "TikTok",
+        time: "17:00",
+        status: 'scheduled' as const,
+        date: createDateStr(15),
+        postType: 'reel'
+      },
+      
+      // Day 18
+      {
+        id: 19,
+        title: "Designuri pentru toate vârstele",
+        caption: "Designuri care se potrivesc oricărei vârste! 👵👩👧",
+        hashtags: "#designuri #varste #potrivit #fiecare",
+        platform: "Instagram",
+        time: "10:00",
+        status: 'draft' as const,
+        date: createDateStr(17),
+        postType: 'normal'
+      },
+      
+      // Day 20
+      {
+        id: 20,
+        title: "Behind the scenes - Ziua tipică",
+        caption: "Vezi cum arată o zi tipică în salonul nostru! 📸",
+        hashtags: "#behindthescenes #ziatipica #salon #vlog",
+        platform: "Instagram",
+        time: "15:00",
+        status: 'scheduled' as const,
+        date: createDateStr(19),
+        postType: 'reel'
+      },
+      
+      // Day 22
+      {
+        id: 21,
+        title: "Client Spotlight - Elena",
+        caption: "Elena și designul ei unic! ✨",
+        hashtags: "#clientspotlight #elena #design #unic",
+        platform: "Instagram",
+        time: "12:00",
+        status: 'scheduled' as const,
+        date: createDateStr(21),
+        postType: 'normal'
+      },
+      
+      // Day 25
+      {
+        id: 22,
+        title: "Tutorial: Design cu strasuri",
+        caption: "Cum să adaugi strasuri pentru un efect wow! 💎",
+        hashtags: "#tutorial #strasuri #wow #effect",
+        platform: "TikTok",
+        time: "18:30",
+        status: 'draft' as const,
+        date: createDateStr(24),
+        postType: 'reel'
+      },
+      
+      // Day 28
+      {
+        id: 23,
+        title: "Colecția de toamnă",
+        caption: "Introducem colecția noastră de toamnă! 🍂",
+        hashtags: "#colectie #toamna #autumn #nou",
+        platform: "Instagram",
+        time: "14:30",
+        status: 'scheduled' as const,
+        date: createDateStr(27),
+        postType: 'normal'
+      },
+      
+      // Day 30
+      {
+        id: 24,
+        title: "Month in review",
+        caption: "Săptămâna în review - cele mai populare designuri! 📊",
+        hashtags: "#monthinreview #popular #designuri #review",
+        platform: "Facebook",
+        time: "11:00",
+        status: 'scheduled' as const,
+        date: createDateStr(29),
         postType: 'normal'
       }
     ];

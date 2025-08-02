@@ -1,14 +1,39 @@
 'use client';
 
+import { useUser } from '@auth0/nextjs-auth0';
 import { useState } from 'react';
 
 interface NavbarProps {
   onMobileMenuToggle: () => void;
   isMobileMenuOpen: boolean;
+  onResetOnboarding?: () => void;
 }
 
-export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen }: NavbarProps) {
+export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen, onResetOnboarding }: NavbarProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user, isLoading } = useUser();
+
+  const handleLogin = () => {
+    window.location.href = '/auth/login';
+  };
+
+  const handleSignup = () => {
+    window.location.href = '/auth/login?screen_hint=signup';
+  };
+
+  const handleLogout = () => {
+    window.location.href = '/auth/logout';
+  };
+
+  const getUserInitials = (name?: string, email?: string) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    if (email) {
+      return email[0].toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <nav className="glass sticky top-0 z-50 border-b border-gray-200/50">
@@ -38,59 +63,112 @@ export default function Navbar({ onMobileMenuToggle, isMobileMenuOpen }: NavbarP
 
         {/* User Menu - Far Right (Hidden on mobile) */}
         <div className="hidden lg:block relative">
-          <button
-            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-            className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-xl p-3 hover-lift"
-          >
-            <div className="w-10 h-10 gradient-secondary rounded-full flex items-center justify-center shadow-premium">
-              <span className="text-white text-base font-medium">U</span>
+          {isLoading ? (
+            <div className="flex items-center space-x-3 text-gray-700 p-3">
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
             </div>
-            <span className="text-base font-medium">Utilizator</span>
-            <svg 
-              className={`w-5 h-5 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+          ) : user ? (
+            // Logged in user
+            <>
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-xl p-3 hover-lift"
+              >
+                {user.picture ? (
+                  <img 
+                    src={user.picture} 
+                    alt={user.name || 'User'} 
+                    className="w-10 h-10 rounded-full shadow-premium"
+                  />
+                ) : (
+                  <div className="w-10 h-10 gradient-secondary rounded-full flex items-center justify-center shadow-premium">
+                    <span className="text-white text-base font-medium">
+                      {getUserInitials(user.name, user.email)}
+                    </span>
+                  </div>
+                )}
+                <span className="text-base font-medium">{user.name || user.email}</span>
+                <svg 
+                  className={`w-5 h-5 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-          {isUserMenuOpen && (
-            <div className="absolute right-0 mt-2 w-64 glass rounded-xl shadow-premium-lg py-2 z-50 border border-gray-200/50">
-              <div className="px-4 py-3 border-b border-gray-200/50">
-                <p className="text-sm font-medium text-gray-900">Utilizator Demo</p>
-                <p className="text-xs text-gray-500">utilizator@example.com</p>
-              </div>
-              <div className="py-1">
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50/50 transition-colors">
-                  <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Profil
-                </a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50/50 transition-colors">
-                  <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Setări
-                </a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50/50 transition-colors">
-                  <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Ajutor
-                </a>
-              </div>
-              <div className="py-1 border-t border-gray-200/50">
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50/50 transition-colors">
-                  <svg className="w-4 h-4 mr-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Deconectare
-                </a>
-              </div>
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl shadow-premium-lg py-2 z-50 border border-gray-700/50">
+                  <div className="px-4 py-3 border-b border-gray-200/50">
+                    <p className="text-sm font-medium text-gray-900">{user.name || 'Utilizator'}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
+                      <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Profil
+                    </a>
+                    <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
+                      <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Setări
+                    </a>
+                    {onResetOnboarding && (
+                      <button 
+                        onClick={() => {
+                          onResetOnboarding();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white"
+                      >
+                        <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Resetare configurare
+                      </button>
+                    )}
+                    <a href="#" className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/80 transition-colors hover:text-white">
+                      <svg className="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Ajutor
+                    </a>
+                  </div>
+                  <div className="py-1 border-t border-gray-200/50">
+                    <button 
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/30 transition-colors hover:text-red-300 group"
+                    >
+                      <svg className="w-4 h-4 mr-3 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Deconectare
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            // Not logged in - show login/signup buttons
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleLogin}
+                className="text-gray-700 hover:text-gray-900 font-medium px-4 py-2 rounded-xl hover:bg-gray-100/50 transition-colors"
+              >
+                Conectare
+              </button>
+              <button
+                onClick={handleSignup}
+                className="gradient-primary text-white px-4 py-2 rounded-xl hover-lift shadow-premium font-medium"
+              >
+                Înregistrare
+              </button>
             </div>
           )}
         </div>
