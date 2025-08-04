@@ -68,6 +68,74 @@ export interface OnboardingData {
   message: string;
 }
 
+// Posts interfaces
+export interface PostRequest {
+  title: string;
+  caption?: string;
+  hashtags?: string;
+  platform: string;
+  postType: 'normal' | 'reel';
+  status: 'scheduled' | 'draft' | 'published';
+  scheduledDate: string;
+  scheduledTime: string;
+  videoScript?: string;
+  videoIdeas?: string[];
+}
+
+export interface PostResponse {
+  id: number;
+  userId: string;
+  title: string;
+  caption?: string;
+  hashtags?: string;
+  platform: string;
+  postType: 'normal' | 'reel';
+  status: 'scheduled' | 'draft' | 'published';
+  scheduledDate: string;
+  scheduledTime: string;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  videoScript?: string;
+  videoIdeas?: string[];
+  likesCount?: number;
+  commentsCount?: number;
+  sharesCount?: number;
+  viewsCount?: number;
+  engagementRate?: number;
+}
+
+export interface SuggestionResponse {
+  hashtags: string[];
+  captions: string[];
+  postIdeas: string[];
+  videoIdeas: string[];
+}
+
+export interface PostTemplateRequest {
+  name: string;
+  titleTemplate?: string;
+  captionTemplate?: string;
+  hashtagsTemplate?: string;
+  platform: string;
+  postType: 'normal' | 'reel';
+  isActive?: boolean;
+}
+
+export interface PostTemplate {
+  id: number;
+  userId: string;
+  name: string;
+  titleTemplate?: string;
+  captionTemplate?: string;
+  hashtagsTemplate?: string;
+  platform: string;
+  postType: 'normal' | 'reel';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 class ApiService {
   async getOnboardingStatus(): Promise<OnboardingResponse> {
     try {
@@ -239,6 +307,344 @@ class ApiService {
       return await response.json();
     } catch (error) {
       console.error('Error fetching onboarding data:', error);
+      throw error;
+    }
+  }
+
+  // Posts API methods
+  async getPosts(): Promise<PostResponse[]> {
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByDate(date: string): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/date/${date}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by date:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByWeek(startDate: string): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/week/${startDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by week:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByMonth(year: number, month: number): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/month/${year}/${month}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by month:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByPeriod(startDate: string, endDate: string): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/period?startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by period:', error);
+      throw error;
+    }
+  }
+
+  async getPost(postId: number): Promise<PostResponse> {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      throw error;
+    }
+  }
+
+  async createPost(data: PostRequest): Promise<PostResponse> {
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw error;
+    }
+  }
+
+  async updatePost(postId: number, data: PostRequest): Promise<PostResponse> {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      throw error;
+    }
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+  }
+
+  async getSuggestions(platform: string, category?: string, language?: string): Promise<SuggestionResponse> {
+    try {
+      let url = `/api/posts/suggestions/${platform}`;
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (language) params.append('language', language);
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      throw error;
+    }
+  }
+
+  async getPostTemplates(): Promise<PostTemplate[]> {
+    try {
+      const response = await fetch('/api/post-templates', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching post templates:', error);
+      throw error;
+    }
+  }
+
+  async createPostTemplate(data: PostTemplateRequest): Promise<PostTemplate> {
+    try {
+      const response = await fetch('/api/post-templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating post template:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByStatus(status: 'scheduled' | 'draft' | 'published'): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/status/${status}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by status:', error);
+      throw error;
+    }
+  }
+
+  async getPostsByPlatform(platform: string): Promise<PostResponse[]> {
+    try {
+      const response = await fetch(`/api/posts/platform/${platform}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts by platform:', error);
+      throw error;
+    }
+  }
+
+  async getPostsWithFilters(filters: {
+    status?: 'scheduled' | 'draft' | 'published';
+    platform?: string;
+    startDate?: string;
+    endDate?: string;
+    postType?: 'normal' | 'reel';
+  }): Promise<PostResponse[]> {
+    try {
+      const params = new URLSearchParams();
+      if (filters.status) params.append('status', filters.status);
+      if (filters.platform) params.append('platform', filters.platform);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      if (filters.postType) params.append('postType', filters.postType);
+
+      const response = await fetch(`/api/posts/filter?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching posts with filters:', error);
       throw error;
     }
   }

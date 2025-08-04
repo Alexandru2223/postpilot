@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, forwardRef, useImperativeHandle, useEffect } from 'react';
 import BusinessInfoCard from './BusinessInfoCard';
 import { BusinessData } from '../lib/useOnboarding';
+import { apiService, PostResponse } from '../lib/api';
 
 interface CalendarProps {
   onAddPost: () => void;
@@ -21,6 +22,8 @@ interface ScheduledPost {
   postType: 'normal' | 'reel';
 }
 
+
+
 const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void }, CalendarProps>(({ onAddPost, businessData }, ref) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -31,349 +34,286 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
   const [isPostDetailsModalOpen, setIsPostDetailsModalOpen] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [postToDelete, setPostToDelete] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<{
+    title: string;
+    caption: string;
+    hashtags: string;
+    platform: string;
+    time: string;
+    status: 'scheduled' | 'draft' | 'published';
+    date: string;
+    postType: 'normal' | 'reel';
+  }>({
     title: '',
     caption: '',
     hashtags: '',
     platform: 'Instagram',
     time: '',
-    status: 'scheduled' as const,
+    status: 'scheduled',
     date: '',
-    postType: 'normal' as const
+    postType: 'normal'
   });
 
-  // Mock data with dates - now using state to allow updates
-  const [mockScheduledPosts, setMockScheduledPosts] = useState<ScheduledPost[]>(() => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    const currentDay = today.getDate();
-    
-    // Helper function to create date string
-    const createDateStr = (daysOffset: number) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() + daysOffset);
-      return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    };
-    
-    return [
-      // Today
-      {
-        id: 1,
-        title: "Transformarea salonului tău de unghii",
-        caption: "Descoperă cum să transformi salonul tău într-un spațiu modern și atractiv! ✨",
-        hashtags: "#unghii #salon #transformare #beauty #nailart",
-        platform: "Instagram",
-        time: "10:00",
-        status: 'scheduled' as const,
-        date: createDateStr(0),
-        postType: 'normal'
-      },
-      {
-        id: 2,
-        title: "Behind the scenes - Procesul de creare",
-        caption: "Vezi cum se nasc designurile noastre unice! 🎨",
-        hashtags: "#behindthescenes #creare #unghii #naildesign",
-        platform: "Facebook",
-        time: "15:30",
-        status: 'draft' as const,
-        date: createDateStr(0),
-        postType: 'reel'
-      },
-      {
-        id: 3,
-        title: "Tutorial: Design floral elegant",
-        caption: "Învață să creezi acest design floral elegant pas cu pas! 🌸",
-        hashtags: "#tutorial #floral #elegant #nailart",
-        platform: "TikTok",
-        time: "18:00",
-        status: 'scheduled' as const,
-        date: createDateStr(0),
-        postType: 'reel'
-      },
-      
-      // Tomorrow
-      {
-        id: 4,
-        title: "Tipuri pentru îngrijirea unghiilor",
-        caption: "5 sfaturi esențiale pentru unghii sănătoase și frumoase! 💅",
-        hashtags: "#ingrijire #unghii #tips #beauty #health",
-        platform: "Instagram",
-        time: "12:00",
-        status: 'scheduled' as const,
-        date: createDateStr(1),
-        postType: 'normal'
-      },
-      {
-        id: 5,
-        title: "Client Spotlight - Maria",
-        caption: "Rezultatul incredibil pentru Maria! Vezi transformarea completă! 👏",
-        hashtags: "#clientspotlight #maria #transformare #rezultate",
-        platform: "Instagram",
-        time: "14:30",
-        status: 'draft' as const,
-        date: createDateStr(1),
-        postType: 'normal'
-      },
-      
-      // Day 3
-      {
-        id: 6,
-        title: "Noua colecție de design-uri",
-        caption: "Introducem colecția noastră de primăvară! 🌺",
-        hashtags: "#colectie #design #nou #primavara #spring",
-        platform: "Instagram",
-        time: "11:00",
-        status: 'scheduled' as const,
-        date: createDateStr(2),
-        postType: 'normal'
-      },
-      {
-        id: 7,
-        title: "Q&A cu specialistul nostru",
-        caption: "Întrebări și răspunsuri cu specialistul nostru în nail art! 💬",
-        hashtags: "#qa #specialist #nailart #intrebari",
-        platform: "Facebook",
-        time: "16:00",
-        status: 'draft' as const,
-        date: createDateStr(2),
-        postType: 'reel'
-      },
-      
-      // Day 4
-      {
-        id: 8,
-        title: "Design geometric modern",
-        caption: "Design geometric modern pentru femeile care iubesc stilul minimalist! ⬜",
-        hashtags: "#geometric #modern #minimalist #style",
-        platform: "Instagram",
-        time: "13:00",
-        status: 'scheduled' as const,
-        date: createDateStr(3),
-        postType: 'normal'
-      },
-      
-      // Day 5
-      {
-        id: 9,
-        title: "Client Spotlight - Transformări incredibile",
-        caption: "Transformări incredibile care vor inspira! ✨",
-        hashtags: "#clientspotlight #transformare #incredibil #inspiratie",
-        platform: "Instagram",
-        time: "10:30",
-        status: 'published' as const,
-        date: createDateStr(4),
-        postType: 'normal'
-      },
-      {
-        id: 10,
-        title: "Tutorial: Ombre effect",
-        caption: "Învață să creezi efectul ombre perfect! 🌈",
-        hashtags: "#tutorial #ombre #effect #nailart",
-        platform: "TikTok",
-        time: "19:00",
-        status: 'scheduled' as const,
-        date: createDateStr(4),
-        postType: 'reel'
-      },
-      
-      // Day 6
-      {
-        id: 11,
-        title: "Produsele noastre favorite",
-        caption: "Produsele pe care le folosim în fiecare zi! 🛍️",
-        hashtags: "#produse #favorite #nailart #tools",
-        platform: "Instagram",
-        time: "15:00",
-        status: 'draft' as const,
-        date: createDateStr(5),
-        postType: 'normal'
-      },
-      
-      // Day 7
-      {
-        id: 12,
-        title: "Weekend vibes - Design relaxant",
-        caption: "Design perfect pentru weekend! 🌅",
-        hashtags: "#weekend #vibes #relaxant #design",
-        platform: "Instagram",
-        time: "12:30",
-        status: 'scheduled' as const,
-        date: createDateStr(6),
-        postType: 'normal'
-      },
-      
-      // Day 8
-      {
-        id: 13,
-        title: "Mistake Monday - Greșeli comune",
-        caption: "Greșelile pe care le facem toți și cum să le evităm! ❌",
-        hashtags: "#mistakemonday #greseli #comune #tips",
-        platform: "Facebook",
-        time: "09:00",
-        status: 'scheduled' as const,
-        date: createDateStr(7),
-        postType: 'reel'
-      },
-      
-      // Day 9
-      {
-        id: 14,
-        title: "Tip Tuesday - Sfaturi practice",
-        caption: "Sfaturi practice pentru unghii perfecte! 💡",
-        hashtags: "#tiptuesday #sfaturi #practice #perfect",
-        platform: "Instagram",
-        time: "14:00",
-        status: 'draft' as const,
-        date: createDateStr(8),
-        postType: 'normal'
-      },
-      
-      // Day 10
-      {
-        id: 15,
-        title: "Transformation Thursday",
-        caption: "Transformări spectaculoase în fiecare joi! 🔥",
-        hashtags: "#transformationthursday #spectaculos #transformare",
-        platform: "Instagram",
-        time: "11:30",
-        status: 'scheduled' as const,
-        date: createDateStr(9),
-        postType: 'normal'
-      },
-      
-      // Day 12
-      {
-        id: 16,
-        title: "Design pentru ocazii speciale",
-        caption: "Designuri perfecte pentru ocazii speciale! 🎉",
-        hashtags: "#ocaziispeciale #design #perfect #celebration",
-        platform: "Instagram",
-        time: "16:30",
-        status: 'scheduled' as const,
-        date: createDateStr(11),
-        postType: 'normal'
-      },
-      
-      // Day 14
-      {
-        id: 17,
-        title: "Client Spotlight - Ana",
-        caption: "Ana și transformarea ei incredibilă! 👑",
-        hashtags: "#clientspotlight #ana #transformare #incredibil",
-        platform: "Facebook",
-        time: "13:30",
-        status: 'published' as const,
-        date: createDateStr(13),
-        postType: 'normal'
-      },
-      
-      // Day 16
-      {
-        id: 18,
-        title: "Tutorial: French manicure modern",
-        caption: "French manicure cu un twist modern! 🇫🇷",
-        hashtags: "#tutorial #french #manicure #modern",
-        platform: "TikTok",
-        time: "17:00",
-        status: 'scheduled' as const,
-        date: createDateStr(15),
-        postType: 'reel'
-      },
-      
-      // Day 18
-      {
-        id: 19,
-        title: "Designuri pentru toate vârstele",
-        caption: "Designuri care se potrivesc oricărei vârste! 👵👩👧",
-        hashtags: "#designuri #varste #potrivit #fiecare",
-        platform: "Instagram",
-        time: "10:00",
-        status: 'draft' as const,
-        date: createDateStr(17),
-        postType: 'normal'
-      },
-      
-      // Day 20
-      {
-        id: 20,
-        title: "Behind the scenes - Ziua tipică",
-        caption: "Vezi cum arată o zi tipică în salonul nostru! 📸",
-        hashtags: "#behindthescenes #ziatipica #salon #vlog",
-        platform: "Instagram",
-        time: "15:00",
-        status: 'scheduled' as const,
-        date: createDateStr(19),
-        postType: 'reel'
-      },
-      
-      // Day 22
-      {
-        id: 21,
-        title: "Client Spotlight - Elena",
-        caption: "Elena și designul ei unic! ✨",
-        hashtags: "#clientspotlight #elena #design #unic",
-        platform: "Instagram",
-        time: "12:00",
-        status: 'scheduled' as const,
-        date: createDateStr(21),
-        postType: 'normal'
-      },
-      
-      // Day 25
-      {
-        id: 22,
-        title: "Tutorial: Design cu strasuri",
-        caption: "Cum să adaugi strasuri pentru un efect wow! 💎",
-        hashtags: "#tutorial #strasuri #wow #effect",
-        platform: "TikTok",
-        time: "18:30",
-        status: 'draft' as const,
-        date: createDateStr(24),
-        postType: 'reel'
-      },
-      
-      // Day 28
-      {
-        id: 23,
-        title: "Colecția de toamnă",
-        caption: "Introducem colecția noastră de toamnă! 🍂",
-        hashtags: "#colectie #toamna #autumn #nou",
-        platform: "Instagram",
-        time: "14:30",
-        status: 'scheduled' as const,
-        date: createDateStr(27),
-        postType: 'normal'
-      },
-      
-      // Day 30
-      {
-        id: 24,
-        title: "Month in review",
-        caption: "Săptămâna în review - cele mai populare designuri! 📊",
-        hashtags: "#monthinreview #popular #designuri #review",
-        platform: "Facebook",
-        time: "11:00",
-        status: 'scheduled' as const,
-        date: createDateStr(29),
-        postType: 'normal'
-      }
-    ];
+  // Posts state - will be loaded from API
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+
+  // State for tracking screen size
+  const [isMobile, setIsMobile] = useState(() => {
+    // Initialize with the correct value based on current screen size
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 640; // sm breakpoint
+    }
+    return false; // Default for SSR
   });
+
+  // Detect screen size changes
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+
+    // Check initial size
+    checkScreenSize();
+
+    // Add event listener for resize
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Load posts for mobile (by date only)
+  useEffect(() => {
+    if (!isMobile) return; // Only run on mobile
+    
+    // Skip if we're still detecting screen size
+    if (typeof window === 'undefined') return;
+    
+    const loadPostsForMobile = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // On mobile, load posts for the selected date (or current date if none selected)
+        const targetDate = selectedDate || currentDate;
+        const dateStr = targetDate.toISOString().split('T')[0];
+        const posts = await apiService.getPostsByDate(dateStr);
+        
+        // Convert PostResponse to ScheduledPost format
+        const convertedPosts: ScheduledPost[] = posts.map(post => ({
+          id: post.id,
+          title: post.title,
+          caption: post.caption || '',
+          hashtags: post.hashtags || '',
+          platform: post.platform,
+          time: post.scheduledTime,
+          status: post.status,
+          date: post.scheduledDate,
+          postType: post.postType
+        }));
+        
+        setScheduledPosts(convertedPosts);
+      } catch (err) {
+        console.error('Error loading posts for mobile:', err);
+        setError('Failed to load posts');
+        // Fallback to mock data for demo
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        
+        const createDateStr = (daysOffset: number) => {
+          const date = new Date(today);
+          date.setDate(today.getDate() + daysOffset);
+          return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
+        
+        setScheduledPosts([
+          {
+            id: 1,
+            title: "Transformarea salonului tău de unghii",
+            caption: "Descoperă cum să transformi salonul tău într-un spațiu modern și atractiv! ✨",
+            hashtags: "#unghii #salon #transformare #beauty #nailart",
+            platform: "Instagram",
+            time: "10:00",
+            status: 'scheduled',
+            date: createDateStr(0),
+            postType: 'normal'
+          },
+          {
+            id: 2,
+            title: "Behind the scenes - Procesul de creare",
+            caption: "Vezi cum se nasc designurile noastre unice! 🎨",
+            hashtags: "#behindthescenes #creare #unghii #naildesign",
+            platform: "Facebook",
+            time: "15:30",
+            status: 'draft',
+            date: createDateStr(0),
+            postType: 'reel'
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPostsForMobile();
+  }, [selectedDate, currentDate]); // Removed isMobile from dependencies
+
+  // Load posts for desktop (by week/month)
+  useEffect(() => {
+    if (isMobile) return; // Only run on desktop
+    
+    // Skip if we're still detecting screen size
+    if (typeof window === 'undefined') return;
+    
+    const loadPostsForDesktop = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        let posts: PostResponse[];
+        
+        // On desktop, load based on view mode
+        if (viewMode === 'week') {
+          // Get current week start date
+          const weekStart = new Date(currentDate);
+          const dayOfWeek = weekStart.getDay();
+          weekStart.setDate(weekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
+          const weekStartStr = weekStart.toISOString().split('T')[0];
+          
+          posts = await apiService.getPostsByWeek(weekStartStr);
+        } else if (viewMode === 'month') {
+          // Get current month posts
+          const year = currentDate.getFullYear();
+          const month = currentDate.getMonth() + 1; // getMonth() returns 0-11
+          
+          posts = await apiService.getPostsByMonth(year, month);
+        } else {
+          // Load all posts for other cases
+          posts = await apiService.getPosts();
+        }
+        
+        // Convert PostResponse to ScheduledPost format
+        const convertedPosts: ScheduledPost[] = posts.map(post => ({
+          id: post.id,
+          title: post.title,
+          caption: post.caption || '',
+          hashtags: post.hashtags || '',
+          platform: post.platform,
+          time: post.scheduledTime,
+          status: post.status,
+          date: post.scheduledDate,
+          postType: post.postType
+        }));
+        
+        setScheduledPosts(convertedPosts);
+      } catch (err) {
+        console.error('Error loading posts for desktop:', err);
+        setError('Failed to load posts');
+        // Fallback to mock data for demo
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        
+        const createDateStr = (daysOffset: number) => {
+          const date = new Date(today);
+          date.setDate(today.getDate() + daysOffset);
+          return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
+        
+        setScheduledPosts([
+          {
+            id: 1,
+            title: "Transformarea salonului tău de unghii",
+            caption: "Descoperă cum să transformi salonul tău într-un spațiu modern și atractiv! ✨",
+            hashtags: "#unghii #salon #transformare #beauty #nailart",
+            platform: "Instagram",
+            time: "10:00",
+            status: 'scheduled',
+            date: createDateStr(0),
+            postType: 'normal'
+          },
+          {
+            id: 2,
+            title: "Behind the scenes - Procesul de creare",
+            caption: "Vezi cum se nasc designurile noastre unice! 🎨",
+            hashtags: "#behindthescenes #creare #unghii #naildesign",
+            platform: "Facebook",
+            time: "15:30",
+            status: 'draft',
+            date: createDateStr(0),
+            postType: 'reel'
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPostsForDesktop();
+  }, [currentDate, viewMode]); // Removed isMobile from dependencies
+
+
+
+
 
   // Function to add new post to calendar
-  const handleAddToCalendar = (newPost: ScheduledPost) => {
-    console.log('Calendar: Adding new post:', newPost);
-    setMockScheduledPosts(prevPosts => {
-      const updatedPosts = [...prevPosts, newPost];
-      console.log('Calendar: Updated posts:', updatedPosts);
-      return updatedPosts;
-    });
+  const handleAddToCalendar = async (newPost: ScheduledPost) => {
+    try {
+      // Convert ScheduledPost format to PostRequest format
+      const postRequest = {
+        title: newPost.title,
+        caption: newPost.caption,
+        hashtags: newPost.hashtags,
+        platform: newPost.platform,
+        postType: newPost.postType,
+        status: newPost.status,
+        scheduledDate: newPost.date,
+        scheduledTime: newPost.time,
+        videoScript: '',
+        videoIdeas: []
+      };
+      
+      const createdPost = await apiService.createPost(postRequest);
+      
+      // Convert PostResponse back to ScheduledPost format
+      const createdScheduledPost: ScheduledPost = {
+        id: createdPost.id,
+        title: createdPost.title,
+        caption: createdPost.caption || '',
+        hashtags: createdPost.hashtags || '',
+        platform: createdPost.platform,
+        time: createdPost.scheduledTime,
+        status: createdPost.status,
+        date: createdPost.scheduledDate,
+        postType: createdPost.postType
+      };
+      
+      console.log('Calendar: Adding new post:', createdScheduledPost);
+      setScheduledPosts(prevPosts => {
+        const updatedPosts = [...prevPosts, createdScheduledPost];
+        console.log('Calendar: Updated posts:', updatedPosts);
+        return updatedPosts;
+      });
+    } catch (error) {
+      console.error('Error creating post:', error);
+      // You could add a toast notification here for error handling
+    }
   };
 
   // Function to delete post
-  const handleDeletePost = (postId: number) => {
-    setMockScheduledPosts(prev => prev.filter(post => post.id !== postId));
+  const handleDeletePost = async (postId: number) => {
+    try {
+      await apiService.deletePost(postId);
+      setScheduledPosts(prev => prev.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      // You could add a toast notification here for error handling
+    }
   };
 
   const handleDeleteClick = (postId: number) => {
@@ -381,9 +321,9 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
     setShowDeleteConfirmation(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (postToDelete) {
-      handleDeletePost(postToDelete);
+      await handleDeletePost(postToDelete);
       setShowDeleteConfirmation(false);
       setPostToDelete(null);
       if (selectedPost && selectedPost.id === postToDelete) {
@@ -414,29 +354,61 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
   };
 
   // Function to save edited post
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingPost) return;
     
-    setMockScheduledPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === editingPost.id 
-          ? { ...post, ...editForm }
-          : post
-      )
-    );
-    
-    setIsEditModalOpen(false);
-    setEditingPost(null);
-    setEditForm({
-      title: '',
-      caption: '',
-      hashtags: '',
-      platform: 'Instagram',
-      time: '',
-      status: 'scheduled',
-      date: '',
-      postType: 'normal'
-    });
+    try {
+      // Convert ScheduledPost format to PostRequest format
+      const postRequest = {
+        title: editForm.title,
+        caption: editForm.caption,
+        hashtags: editForm.hashtags,
+        platform: editForm.platform,
+        postType: editForm.postType,
+        status: editForm.status,
+        scheduledDate: editForm.date,
+        scheduledTime: editForm.time,
+        videoScript: '',
+        videoIdeas: []
+      };
+      
+      const updatedPost = await apiService.updatePost(editingPost.id, postRequest);
+      
+      // Update local state with the response from backend
+      setScheduledPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === editingPost.id 
+            ? {
+                id: updatedPost.id,
+                title: updatedPost.title,
+                caption: updatedPost.caption || '',
+                hashtags: updatedPost.hashtags || '',
+                platform: updatedPost.platform,
+                time: updatedPost.scheduledTime,
+                status: updatedPost.status,
+                date: updatedPost.scheduledDate,
+                postType: updatedPost.postType
+              }
+            : post
+        )
+      );
+      
+      setIsEditModalOpen(false);
+      setEditingPost(null);
+      setEditForm({
+        title: '',
+        caption: '',
+        hashtags: '',
+        platform: 'Instagram',
+        time: '',
+        status: 'scheduled',
+        date: '',
+        postType: 'normal'
+      });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      // You could add a toast notification here for error handling
+    }
   };
 
   // Function to cancel edit
@@ -594,7 +566,7 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
 
   const getPostsForDate = (date: Date) => {
     const dateStr = formatDate(date);
-    return mockScheduledPosts.filter(post => post.date === dateStr);
+    return scheduledPosts.filter(post => post.date === dateStr);
   };
 
   const isToday = (date: Date) => {
@@ -672,9 +644,11 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
         </div>
       </div>
 
+
+
       {/* Calendar Navigation */}
       <div className="card-glass rounded-xl p-3 sm:p-4 lg:p-6 shadow-premium">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+        <div className="hidden sm:flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <div className="flex items-center justify-between sm:justify-start space-x-2 sm:space-x-4">
             <button
               onClick={goToPreviousPeriod}
@@ -696,7 +670,7 @@ const Calendar = forwardRef<{ handleAddToCalendar: (post: ScheduledPost) => void
               </svg>
             </button>
           </div>
-          <div className="flex items-center justify-center sm:justify-end space-x-2">
+          <div className="hidden sm:flex items-center justify-center sm:justify-end space-x-2">
             <button
               onClick={() => setViewMode('week')}
               className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
@@ -1566,7 +1540,7 @@ ${selectedPost.hashtags}`}</p>
             <div>
               <p className="text-xs sm:text-sm text-gray-600">Programate</p>
               <p className="text-lg sm:text-xl font-bold text-gray-900">
-                {mockScheduledPosts.filter(post => post.status === 'scheduled').length}
+                {scheduledPosts.filter(post => post.status === 'scheduled').length}
               </p>
             </div>
           </div>
@@ -1582,7 +1556,7 @@ ${selectedPost.hashtags}`}</p>
             <div>
               <p className="text-xs sm:text-sm text-gray-600">Ciorne</p>
               <p className="text-lg sm:text-xl font-bold text-gray-900">
-                {mockScheduledPosts.filter(post => post.status === 'draft').length}
+                {scheduledPosts.filter(post => post.status === 'draft').length}
               </p>
             </div>
           </div>
@@ -1598,7 +1572,7 @@ ${selectedPost.hashtags}`}</p>
             <div>
               <p className="text-xs sm:text-sm text-gray-600">Publicate</p>
               <p className="text-lg sm:text-xl font-bold text-gray-900">
-                {mockScheduledPosts.filter(post => post.status === 'published').length}
+                {scheduledPosts.filter(post => post.status === 'published').length}
               </p>
             </div>
           </div>

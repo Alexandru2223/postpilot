@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiService } from '../lib/api';
 
 interface AddPostModalProps {
   isOpen: boolean;
@@ -56,40 +57,47 @@ export default function AddPostModal({ isOpen, onClose, onAddToCalendar, isDemo 
     
     setIsGenerating(true);
     
-    // Simulate AI generation delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    if (postType === 'normal') {
-      // Generate normal post content
-      const mockContent = {
-        title: `Transformarea ${businessDescription} - Ghid complet`,
-        caption: `✨ Descoperă secretele pentru a transforma ${businessDescription} într-un business de succes!\n\n💡 Sfaturi practice și strategii testate\n🎯 Rezultate garantate\n\n#${businessDescription.replace(/\s+/g, '')} #business #success #${platform.toLowerCase()}`,
-        hashtags: [
-          `#${businessDescription.replace(/\s+/g, '')}`,
-          '#business',
-          '#success',
-          `#${platform.toLowerCase()}`,
-          '#growth',
-          '#strategy'
-        ]
-      };
-      setGeneratedContent(mockContent);
-    } else {
-      // Generate reel/video content
-      const videoIdeas = [
-        `"Înainte și după" - Arată transformarea ${businessDescription}`,
-        `"Behind the scenes" - Procesul de creare ${businessDescription}`,
-        `"5 sfaturi rapide" pentru ${businessDescription}`,
-        `"Povestea mea" - Cum am început cu ${businessDescription}`,
-        `"Q&A" - Întrebări frecvente despre ${businessDescription}`,
-        `"Tutorial pas cu pas" - Cum să faci ${businessDescription}`,
-        `"Mistake Monday" - Greșeli comune în ${businessDescription}`,
-        `"Tip Tuesday" - Sfaturi pentru ${businessDescription}`,
-        `"Transformation Thursday" - Rezultate ${businessDescription}`,
-        `"Weekend vibes" - Relaxare și ${businessDescription}`
-      ];
+    try {
+      // Get suggestions from backend
+      const suggestions = await apiService.getSuggestions(platform, 'business', 'ro');
       
-      const videoScript = `🎬 SCRIPT VIDEO: ${businessDescription.toUpperCase()}
+      if (postType === 'normal') {
+        // Generate normal post content using backend suggestions
+        const mockContent = {
+          title: `Transformarea ${businessDescription} - Ghid complet`,
+          caption: suggestions.captions.length > 0 
+            ? suggestions.captions[0].replace('${business}', businessDescription)
+            : `✨ Descoperă secretele pentru a transforma ${businessDescription} într-un business de succes!\n\n💡 Sfaturi practice și strategii testate\n🎯 Rezultate garantate\n\n#${businessDescription.replace(/\s+/g, '')} #business #success #${platform.toLowerCase()}`,
+          hashtags: suggestions.hashtags.length > 0 
+            ? suggestions.hashtags.slice(0, 6)
+            : [
+                `#${businessDescription.replace(/\s+/g, '')}`,
+                '#business',
+                '#success',
+                `#${platform.toLowerCase()}`,
+                '#growth',
+                '#strategy'
+              ]
+        };
+        setGeneratedContent(mockContent);
+      } else {
+        // Generate reel/video content using backend suggestions
+        const videoIdeas = suggestions.videoIdeas.length > 0 
+          ? suggestions.videoIdeas.map(idea => idea.replace('${business}', businessDescription))
+          : [
+              `"Înainte și după" - Arată transformarea ${businessDescription}`,
+              `"Behind the scenes" - Procesul de creare ${businessDescription}`,
+              `"5 sfaturi rapide" pentru ${businessDescription}`,
+              `"Povestea mea" - Cum am început cu ${businessDescription}`,
+              `"Q&A" - Întrebări frecvente despre ${businessDescription}`,
+              `"Tutorial pas cu pas" - Cum să faci ${businessDescription}`,
+              `"Mistake Monday" - Greșeli comune în ${businessDescription}`,
+              `"Tip Tuesday" - Sfaturi pentru ${businessDescription}`,
+              `"Transformation Thursday" - Rezultate ${businessDescription}`,
+              `"Weekend vibes" - Relaxare și ${businessDescription}`
+            ];
+        
+        const videoScript = `🎬 SCRIPT VIDEO: ${businessDescription.toUpperCase()}
 
 📱 INTRO (0-3 secunde):
 "Bună! Astăzi îți arăt cum să transformi ${businessDescription} într-un business de succes!"
@@ -109,23 +117,96 @@ export default function AddPostModal({ isOpen, onClose, onAddToCalendar, isDemo 
 
 #${businessDescription.replace(/\s+/g, '')} #video #reel #${platform.toLowerCase()} #business #success`;
 
-      const mockContent = {
-        title: `🎬 Video: ${businessDescription} - Transformare completă`,
-        caption: `🎬 Noul meu video despre ${businessDescription}!\n\n✨ Îți arăt pas cu pas cum să transformi ${businessDescription} într-un business de succes\n\n🎯 Rezultate garantate în doar câteva săptămâni!\n\n📱 Urmărește pentru mai multe sfaturi practice\n\n#${businessDescription.replace(/\s+/g, '')} #video #reel #${platform.toLowerCase()} #business #success`,
-        hashtags: [
-          `#${businessDescription.replace(/\s+/g, '')}`,
-          '#video',
-          '#reel',
-          `#${platform.toLowerCase()}`,
-          '#business',
-          '#success',
-          '#transformation',
-          '#tips'
-        ],
-        videoScript: videoScript,
-        videoIdeas: videoIdeas
-      };
-      setGeneratedContent(mockContent);
+        const mockContent = {
+          title: `🎬 Video: ${businessDescription} - Transformare completă`,
+          caption: `🎬 Noul meu video despre ${businessDescription}!\n\n✨ Îți arăt pas cu pas cum să transformi ${businessDescription} într-un business de succes\n\n🎯 Rezultate garantate în doar câteva săptămâni!\n\n📱 Urmărește pentru mai multe sfaturi practice\n\n#${businessDescription.replace(/\s+/g, '')} #video #reel #${platform.toLowerCase()} #business #success`,
+          hashtags: suggestions.hashtags.length > 0 
+            ? suggestions.hashtags.slice(0, 8)
+            : [
+                `#${businessDescription.replace(/\s+/g, '')}`,
+                '#video',
+                '#reel',
+                `#${platform.toLowerCase()}`,
+                '#business',
+                '#success',
+                '#transformation',
+                '#tips'
+              ],
+          videoScript: videoScript,
+          videoIdeas: videoIdeas
+        };
+        setGeneratedContent(mockContent);
+      }
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+      // Fallback to mock content if API fails
+      if (postType === 'normal') {
+        const mockContent = {
+          title: `Transformarea ${businessDescription} - Ghid complet`,
+          caption: `✨ Descoperă secretele pentru a transforma ${businessDescription} într-un business de succes!\n\n💡 Sfaturi practice și strategii testate\n🎯 Rezultate garantate\n\n#${businessDescription.replace(/\s+/g, '')} #business #success #${platform.toLowerCase()}`,
+          hashtags: [
+            `#${businessDescription.replace(/\s+/g, '')}`,
+            '#business',
+            '#success',
+            `#${platform.toLowerCase()}`,
+            '#growth',
+            '#strategy'
+          ]
+        };
+        setGeneratedContent(mockContent);
+      } else {
+        // Fallback for video content
+        const videoIdeas = [
+          `"Înainte și după" - Arată transformarea ${businessDescription}`,
+          `"Behind the scenes" - Procesul de creare ${businessDescription}`,
+          `"5 sfaturi rapide" pentru ${businessDescription}`,
+          `"Povestea mea" - Cum am început cu ${businessDescription}`,
+          `"Q&A" - Întrebări frecvente despre ${businessDescription}`,
+          `"Tutorial pas cu pas" - Cum să faci ${businessDescription}`,
+          `"Mistake Monday" - Greșeli comune în ${businessDescription}`,
+          `"Tip Tuesday" - Sfaturi pentru ${businessDescription}`,
+          `"Transformation Thursday" - Rezultate ${businessDescription}`,
+          `"Weekend vibes" - Relaxare și ${businessDescription}`
+        ];
+        
+        const videoScript = `🎬 SCRIPT VIDEO: ${businessDescription.toUpperCase()}
+
+📱 INTRO (0-3 secunde):
+"Bună! Astăzi îți arăt cum să transformi ${businessDescription} într-un business de succes!"
+
+🎯 MAIN CONTENT (3-15 secunde):
+• Arată procesul pas cu pas
+• Demonstrează rezultatele
+• Împărtășește sfaturi practice
+
+💡 TIPURI VIZUALE:
+• Folosește text overlay pentru puncte cheie
+• Adaugă emoji-uri pentru engagement
+• Menține ritmul rapid și dinamic
+
+🎬 CALL TO ACTION (15-20 secunde):
+"Urmărește pentru mai multe sfaturi despre ${businessDescription}!"
+
+#${businessDescription.replace(/\s+/g, '')} #video #reel #${platform.toLowerCase()} #business #success`;
+
+        const mockContent = {
+          title: `🎬 Video: ${businessDescription} - Transformare completă`,
+          caption: `🎬 Noul meu video despre ${businessDescription}!\n\n✨ Îți arăt pas cu pas cum să transformi ${businessDescription} într-un business de succes\n\n🎯 Rezultate garantate în doar câteva săptămâni!\n\n📱 Urmărește pentru mai multe sfaturi practice\n\n#${businessDescription.replace(/\s+/g, '')} #video #reel #${platform.toLowerCase()} #business #success`,
+          hashtags: [
+            `#${businessDescription.replace(/\s+/g, '')}`,
+            '#video',
+            '#reel',
+            `#${platform.toLowerCase()}`,
+            '#business',
+            '#success',
+            '#transformation',
+            '#tips'
+          ],
+          videoScript: videoScript,
+          videoIdeas: videoIdeas
+        };
+        setGeneratedContent(mockContent);
+      }
     }
     
     setIsGenerating(false);
